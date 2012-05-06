@@ -7,7 +7,7 @@
 #include <ipod3230.h>
 
 
-static const char GEOIPADDR = '130.95.80.196'; //Geoserver's actual IP address
+static const char *GEOIPADDR = "130.95.80.196"; //Geoserver's actual IP address
 static const int GEOPORT = 4;                  //Port Number. 4 is usually unassigned 
 
 //  FUNCTION init_application() IS CALLED AS SOON AS THE iPHONE'S GUI
