@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
+#include <string.h>      // for memset()
+#include <unistd.h>      // for close()
+#include <Sys/socket.h>  // for socket(), connect(), send(), and recv()
+#include <arpa/inet.h>   // for sockaddr_in and inet_addr()
 #include <ipod3230.h>
+
+
+static const char GEOIPADDR = '130.95.80.196'; //Geoserver's actual IP address
+static const int GEOPORT = 4;                  //Port Number. 4 is usually unassigned 
 
 //  FUNCTION init_application() IS CALLED AS SOON AS THE iPHONE'S GUI
 //  HAS BEEN DRAWN. IT PROVIDES AN OPPORTUNITY TO INITIALIZE YOUR APPLICATION.
@@ -61,15 +66,52 @@ void finalize_application(void)
  */
 
 
+
+
 int main(int argc, char *argv[]){
+    
+    
+    
+    int sock;                          //Socket descriptor
+    struct sockaddr_in geoServAddr;    //Geoserver server address
+    char *geoServIP = GEOIPADDR;       //Geoserver IP address (dotted quad)
+    in_port_t geoServPort = GEOPORT;   //Geoserver server port
+    
+    
+    //TODO:CONSTRUCT MESSAGE TO SEND
     
     // 1. Create stream socket using TCP
     
+    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    
+    if (sock < 0) {
+        DEBUG("socket() failed");
+        exit(1);
+    }
+    
     // 2. Construct server address structure
+    
+    memset(&geoServAddr, 0, sizeof(geoServAddr)); //Zero out structure
+    geoServAddr.sin_family = AF_INET;             //IPv4 address family
     
     // 3. Convert address
     
+    int rtnVal = inet_pton(AF_INET, geoServIP, &geoServAddr.sin_addr.s_addr);
+    if(rtnVal == 0){
+        DEBUG("inet_pton() failed due to invalid address string");
+        exit(1);
+    } else if(rtnVal<0){
+        DEBUG("inet_pton() failed");
+    }
+    
+    geoServAddr.sin_port = htons(geoServPort);
+    
     // 4. Establish connection to server
+    
+    if(connect(sock, (struct sockaddr *)&geoServAddr, sizeof(geoServAddr))<0){ 
+        DEBUG("connect() failed");
+        exit(1);
+    }
     
     // 5. Send message to server
     
