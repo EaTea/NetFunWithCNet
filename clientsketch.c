@@ -70,8 +70,6 @@ void finalize_application(void)
 
 int main(int argc, char *argv[]){
     
-    
-    
     int sock;                          //Socket descriptor
     struct sockaddr_in geoServAddr;    //Geoserver server address
     const char *geoServIP = GEOSERVER_IP;       //Geoserver IP address (dotted quad)
