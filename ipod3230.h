@@ -80,3 +80,9 @@ extern	void finalize_application(void);
 
 extern void DEBUG(const char *fmt, ...);
 
+typedef struct {
+	float lat;
+	float lon;
+	int nAPs;
+	APINFO * APs;
+} IPOD_SAMPLE;
