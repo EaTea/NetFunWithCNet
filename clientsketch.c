@@ -8,7 +8,7 @@
 
 
 static const char *GEOSERVER_IP = "130.95.80.196";    //Geoserver's actual IP address
-static const int GEOSERVER_PORT = 0;                  //Will assign to any unreserved port
+static const int GEOSERVER_PORT = 4;                  //Will assign to port 4
 
 //  FUNCTION init_application() IS CALLED AS SOON AS THE iPHONE'S GUI
 //  HAS BEEN DRAWN. IT PROVIDES AN OPPORTUNITY TO INITIALIZE YOUR APPLICATION.
