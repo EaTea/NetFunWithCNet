@@ -20,6 +20,7 @@ typedef enum {
 //	STRINGS, CONSISTING OF ALPHANUMERIC CHARACTERS.
 
 #define	SSID_LEN	32
+#define MAC_LEN 18
 
 //	THE APINFO STRUCTURE DESCRIBES A CAPTURED BEACON FRAME, WHICH WAS
 //	TRANSMITTED BY A DEVICE OF THE INDICATED SSID AND MAC-ADDRESS (BOTH
@@ -30,9 +31,9 @@ typedef enum {
 //	ITS VALUES RANGE FROM 0 (powerful) DOWN TO -95 (very weak).
 
 typedef struct {
-		char	ssid[SSID_LEN+1];	// e.g.		SNAP\0
-		char	mac[6 * 3];		// e.g.		00:12:da:94:1a:b0\0
-		int32_t	rssi;			// e.g.		-65
+	char	ssid[SSID_LEN+1];	// e.g.		SNAP\0
+	char	mac[MAC_LEN];		// e.g.		00:12:da:94:1a:b0\0
+	int32_t	rssi;			// e.g.		-65
 } APINFO;
 
 /*
@@ -45,7 +46,7 @@ typedef struct {
 typedef struct {
 	float lat;
 	float lon;
-	int8_t nAPs;
+	uint8_t nAPs;
 	APINFO * APs;
 } IPOD_SAMPLE;
 
