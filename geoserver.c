@@ -6,14 +6,43 @@
 #include <sys/types.h>
 #include <arpa/inet.h>   // for sockaddr_in and inet_addr()
 #include <netinet/in.h>
+#include "ipod3230.h"
 
 static const int MAXPENDING = 5; //Max. outstanding connection requests
 
 void geoAppProtocol(int clnSocket) {
+  
+    /* 
+    char buffer[BUFSIZE]; //Buffer for IPOD request 
     
-    char buffer[BUFSIZE]; //Buffer for IPOD message string
+    //Receive request from IPOD
     
-    //Receive message from IPOD
+    ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
+    if(numBytesRcvd < 0)
+        DieWithSystemMessage("recv() failed");
+    ssize_t numBytesRcvdTotal = numBytesRcvd;
+    
+    while(numBytesRcvd > 0) {
+        numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
+        if( numBytesRcvd < 0)
+            DieWithSystemMessage("rcvd() failed");
+        numBytesRcvdTotal = numBytesRcvdTotal + numBytesRcvd;
+    }*/
+    
+    int8_t numSamples;
+    
+    ssize_t numBytesRcvd = recv(clntSocket,numSamples,1, 0);
+    if(numBytesRcvd < 0)
+        DieWithSystemMessage("recv() failed");
+    
+    printf("Number of Samples to receive: %d\n", numSamples);
+
+    FILE *instream = fdopen(clntSocket, "r");
+    if(channel == NULL)
+        DieWithSystemMessage("fdopen() failed");
+    
+    SAMPLE_IPOD samples[numSamples];    
+    
     
     
     
