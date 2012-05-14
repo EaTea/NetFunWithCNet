@@ -1,6 +1,6 @@
 #include "trilat.h"
 
-Location trilaterate(Circle& a, Circle& b, Circle& c)
+Location trilaterate(const Circle& a, const Circle& b, const Circle& c)
 {
 	float xa, xc, ya, yc, ra, rb, rc;
 	Location ca, cb, cc;

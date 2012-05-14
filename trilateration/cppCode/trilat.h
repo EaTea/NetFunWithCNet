@@ -70,14 +70,14 @@ class Circle {
 
 		//Calculate the distance between two points
 		float		getDistance	(
-													Location&,
-													Location&
+													const Location&,
+													const Location&
 												);
 
 		//Calculate the intersection of three points
 		//throws exception if can't be used
 		Location	trilaterate	(
-														Circle&,
-														Circle&,
-														Circle&
+														const Circle&,
+														const Circle&,
+														const Circle&
 													);

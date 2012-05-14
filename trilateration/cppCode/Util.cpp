@@ -8,7 +8,7 @@ void DEBUG(const char* s,...)
 	va_end(argptr);
 }
 
-float getDistance(Location& l1, Location& l2)
+float getDistance(const Location& l1, const Location& l2)
 {
 	float x1, x2, y1, y2;
 	x1 = l1.getLat();
