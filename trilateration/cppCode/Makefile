@@ -1,5 +1,5 @@
 TARGET = Test
-CDEP = $(TARGET) Circle Location Util Trilateration
+CDEP = Circle Location Util Trilateration $(TARGET) 
 CFILES = $(patsubst %, %.cpp, $(CDEP))
 COBJ = $(patsubst %, %.o, $(CDEP))
 HEADS = trilat.h
