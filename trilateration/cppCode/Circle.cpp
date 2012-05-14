@@ -32,7 +32,7 @@ void			Circle::setRadius					(
 
 Circle::Circle											(
 																			Location& newCenter,
-																			float newRadius=0
+																			float newRadius
 																		)
 {
 	this->setCenter(newCenter);
