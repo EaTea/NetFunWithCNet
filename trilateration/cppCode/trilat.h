@@ -75,9 +75,9 @@ class Circle {
 												);
 
 		//Calculate the intersection of three points
-		//returns NULL if no intersection exists
-		Location*	trilaterate	(
-														Location&,
-														Location&,
-														Location&
+		//throws exception if can't be used
+		Location	trilaterate	(
+														Circle&,
+														Circle&,
+														Circle&
 													);
