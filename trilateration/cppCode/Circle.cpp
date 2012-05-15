@@ -1,8 +1,8 @@
 #include "trilat.h"
 
-Location	Circle::getCenter					() const
+Point	Circle::getCenter					() const
 {
-	Location l(center);
+	Point l(center);
 	return l;
 }
 
@@ -12,7 +12,7 @@ float			Circle::getRadius					() const
 }
 
 void			Circle::setCenter					(
-																			Location& newCenter
+																			Point& newCenter
 																		)
 {
 	center = newCenter;
@@ -31,7 +31,7 @@ void			Circle::setRadius					(
 }
 
 Circle::Circle											(
-																			Location& newCenter,
+																			Point& newCenter,
 																			float newRadius
 																		)
 {
@@ -54,8 +54,8 @@ Circle::Circle											(
 }
 
 Circle::Circle											(
-																			Location& newCenter,
-																			Location& ptOnCircumference
+																			Point& newCenter,
+																			Point& ptOnCircumference
 																		)
 {
 	setCenter(newCenter);
@@ -80,7 +80,7 @@ Circle::Circle											(
 																			const Circle& other
 																		)
 {
-	Location l(other.getCenter());
+	Point l(other.getCenter());
 	this->setCenter(l);
 	try
 	{
