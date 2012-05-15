@@ -42,14 +42,22 @@ Point Point::operator+ (const Point& l) const
 
 Point Point::operator- (const Point& l) const
 {
-	Point n(l);
-	n.setLat(-n.getLat());
-	n.setLat(-n.getLon());
-	return *(this)-n;
+	Point n;
+	n.setLat(this->getLat()-l.getLat());
+	n.setLon(this->getLon()-l.getLon());
+	return n;
 }
 
 float Point::operator^ (const Point& l) const
 {
 	float f = (this->getLat() * l.getLat()) + (this->getLon() * l.getLon());
 	return f;
+}
+
+Point Point::operator* (const float f) const
+{
+	Point p;
+	p.setLat(f*this->getLat());
+	p.setLon(f*this->getLon());
+	return p;
 }

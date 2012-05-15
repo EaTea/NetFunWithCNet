@@ -24,12 +24,12 @@ class Point {
 		void 		setLon	(
 											float		//new longitude
 										);
-						Point(
+						Point		(
 											float=0,//latitude, default 0
 											float=0	//longitude, default 0
 										);
 		//Effectively an object clone
-						Point(
+						Point		(
 											const Point&		//reference to Point to clone
 										);
 		//Minus operator
@@ -44,6 +44,11 @@ class Point {
 		float 	operator^	(
 												const Point& //dot product value
 											) const;
+		//Scalar multiplication operator
+		Point 	operator*	(
+												const float //dot product value
+											) const;
+
 
 };
 
@@ -95,3 +100,5 @@ class Circle {
 														const Circle&,
 														const Circle&
 													);
+
+		Point getUnitPoint(const Point&);

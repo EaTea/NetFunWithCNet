@@ -20,3 +20,13 @@ float getDistance(const Point& l1, const Point& l2)
 	y = y1 - y2;
 	return sqrt(pow(x, 2)+pow(y, 2));
 }
+
+Point getUnitPoint(const Point& p)
+{
+	Point origin;
+	float distanceToOrigin = getDistance(p,origin);
+	Point unitPoint;
+	unitPoint.setLat(p.getLat()/distanceToOrigin);
+	unitPoint.setLon(p.getLon()/distanceToOrigin);
+	return unitPoint;
+}

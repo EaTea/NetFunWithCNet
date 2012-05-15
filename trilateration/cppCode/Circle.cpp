@@ -15,7 +15,7 @@ void			Circle::setCenter					(
 																			Point& newCenter
 																		)
 {
-	center = newCenter;
+	center = Point(newCenter);
 }
 
 void			Circle::setRadius					(
