@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <arpa/inet.h>   // for sockaddr_in and inet_addr()
 #include <netinet/in.h>
-#include "ipod3230.h"
-#define _POSIX_C_SOURCE 1
 
 static const int MAXPENDING = 5; //Max. outstanding connection requests
 
@@ -75,23 +73,26 @@ int AcceptTCPConnection(int servSock) {
 
 void geoAppProtocol(int clntSocket) {
   
-    /* 
-    char buffer[BUFSIZE]; //Buffer for IPOD request 
+   
+    char buffer[BUFSIZ]; //Buffer for IPOD request 
     
     //Receive request from IPOD
     
-    ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
+    ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZ, 0);
     if(numBytesRcvd < 0)
         DieWithSystemMessage("recv() failed");
     ssize_t numBytesRcvdTotal = numBytesRcvd;
     
     while(numBytesRcvd > 0) {
-        numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
+        numBytesRcvd = recv(clntSocket, buffer, BUFSIZ, 0);
         if( numBytesRcvd < 0)
             DieWithSystemMessage("rcvd() failed");
         numBytesRcvdTotal = numBytesRcvdTotal + numBytesRcvd;
-    }*/
+    }
+    printf("Message: %s\n", buffer);
     
+    
+    /*
     int8_t numSamples;
     
     ssize_t numBytesRcvd = recv(clntSocket,(void*)(&numSamples),1, 0);
@@ -113,6 +114,7 @@ void geoAppProtocol(int clntSocket) {
     }
     
     fclose(instream); //close the socket connection
+    */
     
     //TODO: Collate and Calculate (lat, lon)
     
