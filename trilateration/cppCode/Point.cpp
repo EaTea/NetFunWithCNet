@@ -1,63 +1,63 @@
 #include "trilat.h"
 
-float Point::getLat() const
+float Point::getX() const
 {
-	return lat;
+	return x;
 }
 
-float Point::getLon() const
+float Point::getY() const
 {
-	return lon;
+	return y;
 }
 
-void Point::setLat	(float newLat)
+void Point::setX	(float newX)
 {
-	lat = newLat;
+	x = newX;
 }
 
-void Point::setLon	(float newLon)
+void Point::setY	(float newY)
 {
-	lon = newLon;
+	y = newY;
 }
 
-Point::Point		(float newLat, float newLon)
+Point::Point		(float newX, float newY)
 {
-	this->setLat(newLat);
-	this->setLon(newLon);
+	this->setX(newX);
+	this->setY(newY);
 }
 
 Point::Point		(const Point& other)
 {
-	this->setLat(other.getLat());
-	this->setLon(other.getLon());
+	this->setX(other.getX());
+	this->setY(other.getY());
 }
 
 Point Point::operator+ (const Point& l) const
 {
 	Point n;
-	n.setLat(l.getLat()+this->getLat());
-	n.setLat(l.getLon()+this->getLon());
+	n.setX(l.getX()+this->getX());
+	n.setX(l.getY()+this->getY());
 	return n;
 }
 
 Point Point::operator- (const Point& l) const
 {
 	Point n;
-	n.setLat(this->getLat()-l.getLat());
-	n.setLon(this->getLon()-l.getLon());
+	n.setX(this->getX()-l.getX());
+	n.setY(this->getY()-l.getY());
 	return n;
 }
 
 float Point::operator^ (const Point& l) const
 {
-	float f = (this->getLat() * l.getLat()) + (this->getLon() * l.getLon());
+	float f = (this->getX() * l.getX()) + (this->getY() * l.getY());
 	return f;
 }
 
 Point Point::operator* (const float f) const
 {
 	Point p;
-	p.setLat(f*this->getLat());
-	p.setLon(f*this->getLon());
+	p.setX(f*this->getX());
+	p.setY(f*this->getY());
 	return p;
 }

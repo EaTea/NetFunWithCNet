@@ -2,8 +2,7 @@
 
 using namespace std;
 
-Point 
-
 int main()
 {
+	cout << "YES" << endl;
 }

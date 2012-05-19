@@ -32,9 +32,9 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	DEBUG("%d %d %d\n", abIntersect, acIntersect, bcIntersect);
 
 	DEBUG("Attempting to trilaterate:\n");
-	DEBUG("Centre:(%f, %f) Radius:%f\n",ca.getLat(), ca.getLon(), ra);
-	DEBUG("Centre:(%f, %f) Radius:%f\n",cb.getLat(), cb.getLon(), rb);
-	DEBUG("Centre:(%f, %f) Radius:%f\n",cc.getLat(), cc.getLon(), rc);
+	DEBUG("Centre:(%f, %f) Radius:%f\n",ca.getX(), ca.getY(), ra);
+	DEBUG("Centre:(%f, %f) Radius:%f\n",cb.getX(), cb.getY(), rb);
+	DEBUG("Centre:(%f, %f) Radius:%f\n",cc.getX(), cc.getY(), rc);
 	if(!abIntersect || !acIntersect || !bcIntersect)
 	{
 		DEBUG("Error: each pair of circles must intersect with at least two points\n");

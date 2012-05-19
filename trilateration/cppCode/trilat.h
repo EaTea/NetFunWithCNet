@@ -12,16 +12,16 @@
 class Point {
 	private:
 		//latitude of the point
-		float 	lat;
+		float 	x;
 		//longitude of the point
-		float 	lon;
+		float 	y;
 	public: 
-		float 	getLat	() const;
-		float 	getLon	() const;
-		void 		setLat	(
+		float 	getX	() const;
+		float 	getY	() const;
+		void 		setX	(
 											float		//new latitude
 										);
-		void 		setLon	(
+		void 		setY	(
 											float		//new longitude
 										);
 						Point		(

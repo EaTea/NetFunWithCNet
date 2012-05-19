@@ -11,10 +11,10 @@ void DEBUG(const char* s,...)
 float getDistance(const Point& l1, const Point& l2)
 {
 	float x1, x2, y1, y2;
-	x1 = l1.getLat();
-	x2 = l2.getLat();
-	y1 = l1.getLon();
-	y2 = l1.getLon();
+	x1 = l1.getX();
+	x2 = l2.getX();
+	y1 = l1.getY();
+	y2 = l1.getY();
 	float x, y;
 	x = x1 - x2;
 	y = y1 - y2;
@@ -26,7 +26,7 @@ Point getUnitPoint(const Point& p)
 	Point origin;
 	float distanceToOrigin = getDistance(p,origin);
 	Point unitPoint;
-	unitPoint.setLat(p.getLat()/distanceToOrigin);
-	unitPoint.setLon(p.getLon()/distanceToOrigin);
+	unitPoint.setX(p.getX()/distanceToOrigin);
+	unitPoint.setY(p.getY()/distanceToOrigin);
 	return unitPoint;
 }
