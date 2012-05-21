@@ -96,7 +96,7 @@ class Circle {
 												);
 
 		//Calculate the intersection of three points
-		//throws exception if can't be used
+		//throws exception if the triplet of circles do not each intersect
 		Point	trilaterate	(
 														const Circle&,
 														const Circle&,
@@ -111,4 +111,10 @@ class Circle {
 
 		float distanceBetweenTwoLatLons(float,float,float,float);
 
-		void boundingBoxInMetres(float, float, float, float);
+		void setupPermissibleArea(float, float, float, float);
+
+		float haversine(float);
+
+		Point latLonToXY(float,float);
+
+		void pointToLatLon(Point,float*,float*);
