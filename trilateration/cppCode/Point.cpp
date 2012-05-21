@@ -1,4 +1,4 @@
-#include "trilat.h"
+#include "locate.h"
 
 float Point::getX() const
 {
@@ -36,7 +36,7 @@ Point Point::operator+ (const Point& l) const
 {
 	Point n;
 	n.setX(l.getX()+this->getX());
-	n.setX(l.getY()+this->getY());
+	n.setY(l.getY()+this->getY());
 	return n;
 }
 

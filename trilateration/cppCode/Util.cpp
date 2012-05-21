@@ -1,6 +1,6 @@
-#include "trilat.h"
+#include "locate.h"
 
-void DEBUG(const char* s,...)
+void PRINT_ERR(const char* s,...)
 {
 	va_list argptr;
 	va_start(argptr, s);
@@ -14,7 +14,7 @@ float getDistance(const Point& l1, const Point& l2)
 	x1 = l1.getX();
 	x2 = l2.getX();
 	y1 = l1.getY();
-	y2 = l1.getY();
+	y2 = l2.getY();
 	float x, y;
 	x = x1 - x2;
 	y = y1 - y2;

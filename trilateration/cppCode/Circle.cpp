@@ -1,4 +1,4 @@
-#include "trilat.h"
+#include "locate.h"
 
 Point	Circle::getCenter					() const
 {
@@ -24,7 +24,7 @@ void			Circle::setRadius					(
 {
 	if(newRadius < 0)
 	{
-		DEBUG("Error: %f was passed as radius parameter but radius should be more than or equal to 0", newRadius);
+		PRINT_ERR("Error: %f was passed as radius parameter but radius should be more than or equal to 0", newRadius);
 		throw RADIUS_LESS_THAN_0;
 	}
 	radius = newRadius;
