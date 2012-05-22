@@ -1,5 +1,5 @@
 #include "trilaterate.h"
-#include "geoserver.h"
+#include "debug.h"
 
 void locatePosition(const std::vector<Circle>&, Point *, int *);
 

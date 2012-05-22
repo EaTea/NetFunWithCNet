@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "geoserver.h"
+#include "debug.h"
 
 //following are exceptions
 #define RADIUS_LESS_THAN_0 1
