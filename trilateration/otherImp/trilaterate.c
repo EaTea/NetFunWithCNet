@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define PLUS_MINUS '�'
 #define PI 3.1415926535897932384626433832795
@@ -230,5 +232,28 @@ int main(int argc, char ** argv) {
 		printf("Result = (" PRECISION_F ", " PRECISION_F ", %c " PRECISION_F ")\n", result.x, result.y, PLUS_MINUS, result.z);
 		
 	}
+	terms[0].x = 0;
+	terms[0].y = 0;
+	terms[0].z = 0;
+	terms[0].r = 5;
+	terms[1].x = 3;
+	terms[1].y = 4;
+	terms[1].z = 0;
+	terms[1].r = 5;
+	terms[2].x = 0;
+	terms[2].y = 2;
+	terms[2].z = 0;
+	terms[2].r = 6;
+	// Alter the coordinate system to center terms[0] and rotate the plane to ensure terms[1].y == 0
+	restore = CoordinateTransformation(terms);
+		
+	// Trilaterate the 3 points and get the intersection
+	result = Trilaterate(terms);
+		
+	// Restore the previous coordinate system
+	result = InverseCoordinateTransformation(result, restore);
+		
+	// Dance or something
+	printf("Result = (" PRECISION_F ", " PRECISION_F ", %c " PRECISION_F ")\n", result.x, result.y, PLUS_MINUS, result.z);
 }
 
