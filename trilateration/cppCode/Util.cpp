@@ -30,3 +30,16 @@ Point getUnitPoint(const Point& p)
 	unitPoint.setY(p.getY()/distanceToOrigin);
 	return unitPoint;
 }
+
+float perpProduct(const Point& p1, const Point& p2)
+{
+	float f = p1.getX()*p2.getY()-p1.getY()*p2.getX();
+	return f;
+}
+
+bool areColinear(const Point& p1, const Point& p2, const Point& p3)
+{
+	Point p1mp2 = p2 - p1;	
+	Point p1mp3 = p3 - p1;
+	return perpProduct(p1mp2,p1mp3) == 0;
+}

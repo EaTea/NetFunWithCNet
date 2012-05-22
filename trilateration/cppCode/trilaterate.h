@@ -13,7 +13,12 @@
 #define RADIUS_LESS_THAN_0 1
 #define CIRCLES_DO_NOT_INTERSECT 2
 #define NO_POINT_SAMPLES_GENERATED 4
+#define CIRCLE_CENTRES_ARE_COLINEAR 8
 
+/*
+	Implemented in Point.cpp
+	Representation of a Point in the 2d plane
+*/
 class Point {
 	private:
 		//latitude of the point
@@ -23,10 +28,10 @@ class Point {
 	public: 
 		float 	getX	() const;
 		float 	getY	() const;
-		void 		setX	(
+		void 		setX		(
 											float		//new latitude
 										);
-		void 		setY	(
+		void 		setY		(
 											float		//new longitude
 										);
 						Point		(
@@ -38,11 +43,11 @@ class Point {
 											const Point&		//reference to Point to clone
 										);
 		//Minus operator
-		Point operator-	(
+		Point operator-			(
 													const Point& //other location
 												) const;
 		//Plus operator
-		Point operator+	(
+		Point operator+			(
 													const Point& //other location
 												) const;
 		//Dot-product operator
@@ -57,6 +62,11 @@ class Point {
 
 };
 
+/*
+	Implemented in Circle.cpp
+	Representation of a 2D circle, will essentially contract to a single Point if
+	radius is specified as 0
+*/
 class Circle {
 	private:
 		//circle center
@@ -92,12 +102,14 @@ class Circle {
 														);
 };
 
+		//Implemented in Util.cpp
 		//Calculate the distance between two points
 		float		getDistance	(
 													const Point&,
 													const Point&
 												);
 
+		//Implemented in Trilateration.c
 		//Calculate the intersection of three points
 		//throws exception if the triplet of circles do not each intersect
 		Point	trilaterate			(
@@ -106,10 +118,32 @@ class Circle {
 														const Circle&
 													);
 
+		//Implemented in Util.cpp
 		//convert a point to a unit vector
 		//that is, suppose that Point p is distance d from the origin
 		//then getUnitPoint(p) returns p_unit such that
 		//d * p_unit = p and the distance from p_unit to the origin is 1
 		Point getUnitPoint		(
+														const Point&
+													);
+		/*
+			Implemented in Util.cpp
+			Find the Perpendicular dot product of two points in 2D space
+			Essentially a cross product but both points in the plane Z = 0
+		*/
+		float perpProduct			(
+														const Point&,
+														const Point&
+													);
+
+		/*
+			Implemented in Util.cpp
+			Returns true if three points are colinear, uses the cross product or
+			perpendicular dot product to determine if points are colinear, that is
+			all three are on the SAME line
+		*/
+		bool areColinear			(
+														const Point&,
+														const Point&,
 														const Point&
 													);

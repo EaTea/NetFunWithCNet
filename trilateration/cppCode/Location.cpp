@@ -4,11 +4,43 @@
 #include <map>
 #include <utility>
 
-float distanceBetweenTwoLatLons(float,float,float,float);
+/*
+	Find the floating point representation of distance between two lat lons
+	Uses Haversine formula
+*/
+float distanceBetweenTwoLatLons		(
+																		float, //latitude 1
+																		float, //longitude 1
+																		float, //latitude 2
+																		float //longitude 2
+																	);
 
-Point latLonToPoint(float,float);
+/*
+	Converts latitude and longitude to a Point in XY where lower LH corner of the
+	bounding box of the area the photoserver covers is considered origin
+	Returns Point
+*/
+Point latLonToPoint								(
+																		float, //latitude
+																		float //longitude
+																	);
 
-void pointToLatLon(const Point&,float*,float*);
+/*
+	Converts Point to latitude and longitude in where lower LH corner of bounding box of
+	area photoserver covers is considered origin
+	returns through pass by reference
+*/
+void pointToLatLon								(	
+																		const Point&, //point to convert
+																		float*, //latitude
+																		float* //longitude
+																	);
+
+/*
+	Haversine function, as defined by wikipedia to be 
+	Haversine(x) = (sin(x/2))^2
+*/
+float haversine(float);
 
 //the furthest possible distance in the x direction on the map (horizontally)
 float X_MAX;
@@ -34,14 +66,18 @@ float haversine(float f)
 
 bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector<int32_t>& rssis, float *lat, float *lon)
 {
+	//generate circles
 	std::vector<Circle> circles;
 	for(unsigned int i = 0; i < MACs.size(); i++)
 	{
+		//no established values for this MAC, skip and continue
+		if(macSamples.find(MACs[i]) == macSamples.end()) continue;
 		Point p = macSamples[MACs[i]].first;
 		float radius = fabs(rssis[i]);
 		Circle c(p, radius);
 		circles.push_back(c);
 	}
+
 	if(circles.size() < 3)
 	{
 		return false;
@@ -65,15 +101,17 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 
 bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float>& lons, const std::vector<int32_t>& rssis, const std::string& macAddress)
 {
+	//constructing all circles from lat, lons, rssis
 	std::vector<Circle> circles;
 	size_t nCircles = std::min(lats.size(), std::min(lons.size(), rssis.size()));
 	for(size_t i = 0; i < nCircles; i++)
 	{
 		Point p = latLonToPoint(lats[i],lons[i]);
-		float rad = fabs(rssis[i]); //temporary conversion technique
+		float rad = fabs(rssis[i]); //TODO: temporary conversion technique
 		Circle c(p, rad);
 		circles.push_back(c);
 	}
+	//not enough samples
 	if(circles.size() < 3)
 	{
 		return false;
@@ -84,6 +122,7 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 		{
 			Point p; //at origin
 			int nPrevious = 0;
+			//previous values for this macAddress found
 			if(macSamples.find(macAddress) != macSamples.end())
 			{
 				p = macSamples[macAddress].first;
@@ -105,11 +144,12 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 
 void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 {
-	float xSum, ySum;
+	double xSum, ySum;
 	uint32_t nPoints;
 	xSum = ySum = 0;
 	nPoints = 0;
 
+	//perform nChoose3 trilateration calculations
 	for(size_t i = 0; i < v.size(); i++)
 	{
 		for(size_t j = i+1; j < v.size(); j++)
@@ -119,13 +159,13 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 				try
 				{
 					Point p = trilaterate(v[i],v[j],v[k]);
-					xSum += p.getX();
-					ySum += p.getY();
+					xSum += (double)p.getX();
+					ySum += (double)p.getY();
 					nPoints++;
 				}
 				catch(int e)
 				{
-					if(e == CIRCLES_DO_NOT_INTERSECT)
+					if(e == CIRCLES_DO_NOT_INTERSECT || CIRCLE_CENTRES_ARE_COLINEAR)
 						continue;
 					else
 					{
@@ -146,11 +186,15 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 	xSum += prev->getX()*(*nPrev);
 	ySum += prev->getY()*(*nPrev);
 
+	printf("%f %f\n", xSum, ySum);
+
 	xSum /= (*nPrev + nPoints);
 	ySum /= (*nPrev + nPoints);
 
-	prev->setX(xSum);
-	prev->setY(ySum);
+	printf("%f %f\n", xSum, ySum);
+
+	prev->setX((float)xSum);
+	prev->setY((float)ySum);
 
 	*nPrev = nPoints+*nPrev;
 }
@@ -173,6 +217,7 @@ float distanceBetweenTwoLatLons(float lat1, float lon1, float lat2, float lon2)
 	haverLon = haversine(lon2_ra-lon1_ra);
 	cosLat2 = cos(lat2_ra);
 	cosLat1 = cos(lat1_ra);
+
 	float sum = sqrt(haverLat + cosLat1*cosLat2*haverLon);
 	float tmp = asin(sum);
 	float distance = 2 * EARTH_RADIUS * tmp; //in metres
@@ -219,20 +264,26 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 	lon_diff = fabs(lon1-lon2);
 }
 
-void readFileToSamples(const char* fileName)
+void readSamplesFromFile(const char* fileName)
 {
 	FILE* fileToRead = fopen(fileName,"r");
-	while(!feof(fileToRead))
+	char line[BUFSIZ];
+	float lat, lon;
+	char name[18]; //TODO: a hardcoded value, perhaps should be in a constants header?
+	int n;
+	while(fgets(line, sizeof line, fileToRead ))
 	{
-		float lat, lon;
-		char name[19]; //TODO: a hardcoded value, perhaps should be in a constants header?
-		int n;
-		if(fscanf(fileToRead,"%s,%f,%f,%d",name,&lat,&lon,&n))
+		sscanf(line,"%[^\t\n,],%f,%f,%d",name,&lat,&lon,&n);
+		if(ferror(fileToRead))
 		{
-			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\"", fileName);
+			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\" but encountered error %d on stream\n", fileName,ferror(fileToRead));
+			clearerr(fileToRead);
 			continue;
 		}
-		macSamples[name] = std::pair<Point,int>(latLonToPoint(lat,lon),n);
+		std::string cppName(name);
+		PRINT_ERR("%s\n",name);
+		PRINT_ERR("%s,%f,%f,%d\n",name,lat,lon,n);
+		macSamples[cppName] = std::pair<Point,int>(latLonToPoint(lat,lon),n);
 	}
 	fclose(fileToRead);
 }

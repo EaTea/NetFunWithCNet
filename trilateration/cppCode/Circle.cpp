@@ -19,7 +19,7 @@ void			Circle::setCenter					(
 }
 
 void			Circle::setRadius					(
-																			float newRadius
+																			float newRadius //radius should be more than or equal to 0
 																		)
 {
 	if(newRadius < 0)
@@ -47,7 +47,7 @@ Circle::Circle											(
 			case RADIUS_LESS_THAN_0:
 				setRadius(0);
 				break;
-			default:
+			default: //exception unknown
 				throw;
 		}
 	}
@@ -70,7 +70,7 @@ Circle::Circle											(
 			case RADIUS_LESS_THAN_0:
 				setRadius(0);
 				break;
-			default:
+			default: //exception unknown
 				throw;
 		}
 	}

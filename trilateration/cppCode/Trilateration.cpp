@@ -35,6 +35,12 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	cb = b.getCenter();
 	cc = c.getCenter();
 
+	if(areColinear(ca,cb,cc))
+	{
+		PRINT_ERR("Error: circle centres are colinear\n");
+		throw CIRCLE_CENTRES_ARE_COLINEAR;
+	}
+
 	float dab = getDistance(ca, cb); //distance from a to b
 	float dac = getDistance(ca, cc); //distance from a to c
 	float dbc = getDistance(cb, cc); //distance from b to c
@@ -44,9 +50,9 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 
 	//does a,b intersect? a,c intersect? b,c intersect?
 	bool abIntersect, acIntersect, bcIntersect;
-	abIntersect = dab-ra < rb && rb < dab+ra;
-	acIntersect = dac-ra < rc && rc < dac+ra;
-	bcIntersect = dbc-rb < rc && rc < dbc+rb;
+	abIntersect = fabs(dab-ra) < rb && rb < dab+ra;
+	acIntersect = fabs(dac-ra) < rc && rc < dac+ra;
+	bcIntersect = fabs(dbc-rb) < rc && rc < dbc+rb;
 
 	//debug statements
 	PRINT_ERR("Attempting to trilaterate:\n");
@@ -92,6 +98,7 @@ Point __trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	//the intersection point relative to origin in transformed co-ordinate space
 	float x = (powf(ra,2)-powf(rb,2)+powf(d,2))/(2*d);
 	float y = ((powf(ra, 2)-powf(rc,2)+powf(i,2)+powf(j,2))/(2*j)) - x*(i)/(j);
+	printf("x:%f y:%f\n", x, y);
 
 	//transform x, y to original co-ordinate frame
 	Point xMagVector = xUnitVector*x, yMagVector = yUnitVector*y;
@@ -113,8 +120,11 @@ float signedMagnitudeX(const Point& ca, const Point& cc, const Point& xUnit)
 
 Point getYUnit(const Point& ca, const Point& cc, const float xMag, const Point& xUnit)
 {
+	printf("xUnit:%f %f\n", xUnit.getX(), xUnit.getY());
 	Point xTimesXMag = xUnit * xMag;//scalar multiplication
+	printf("xtimes: %f %f\n",xTimesXMag.getX(),xTimesXMag.getY());
 	Point nonUnitVector = cc - ca - xTimesXMag;
+	printf("nonUnit: %f %f\n",nonUnitVector.getX(),nonUnitVector.getY());
 	return getUnitPoint(nonUnitVector); //normalise to unit vector
 }
 
