@@ -1,4 +1,5 @@
 #include "locate.h"
+#include "serialise.h"
 
 #include <map>
 #include <utility>
@@ -201,6 +202,8 @@ void pointToLatLon(const Point& p, float *lat, float *lon)
 	*lon = lon_origin + y/Y_MAX*lon_diff;
 }
 
+//set up the trilateration and location code by first setting the area where
+//location code can be effectively used
 void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 {
 	//crude method to account for variations in radii parallel to equator as latitude changes
@@ -214,4 +217,41 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 	//set difference as absolute value
 	lat_diff = fabs(lat1-lat2);
 	lon_diff = fabs(lon1-lon2);
+}
+
+void readFileToSamples(std::string& fileName)
+{
+	FILE* fileToRead = fopen(fileName.c_str(),"r");
+	while(!feof(fileToRead))
+	{
+		float lat, lon;
+		char name[19]; //TODO: a hardcoded value, perhaps should be in a constants header?
+		int n;
+		if(fscanf(fileToRead,"%s,%f,%f,%d",name,&lat,&lon,&n))
+		{
+			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\"", fileName.c_str());
+			continue;
+		}
+		macSamples[name] = std::pair<Point,int>(latLonToPoint(lat,lon),n);
+	}
+	fclose(fileToRead);
+}
+
+void writeSamplesToFile(std::string& fileName)
+{
+	//open filestream
+	FILE* fileToWrite = fopen(fileName.c_str(),"w+");
+
+	//construct iterator to beginning of map 
+	std::map<std::string, std::pair<Point, int> >::iterator sample = macSamples.begin();
+	for(; sample != macSamples.end(); sample++)
+	{
+		float lat, lon;
+		//convert to latitude and longitude
+		pointToLatLon((sample->second).first, &lat, &lon);
+		fprintf(fileToWrite,"%s,%f,%f,%d\n",(sample->first).c_str(),lat,lon,(sample->second).second);
+	}
+
+	//close filestream
+	fclose(fileToWrite);
 }
