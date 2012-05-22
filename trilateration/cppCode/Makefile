@@ -2,7 +2,7 @@ TARGET = Test
 CDEP = Circle Point Util Trilateration Location $(TARGET) 
 CFILES = $(patsubst %, %.cpp, $(CDEP))
 COBJ = $(patsubst %, %.o, $(CDEP))
-HEADS = locate.h
+HEADS = locate.h trilaterate.h
 CFLAGS = -Wall -Werror -pedantic -ggdb -O2 -lm
 
 all: $(TARGET)

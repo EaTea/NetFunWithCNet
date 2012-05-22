@@ -1,4 +1,4 @@
-#include "locate.h"
+#include "trilaterate.h"
 
 Point	Circle::getCenter					() const
 {

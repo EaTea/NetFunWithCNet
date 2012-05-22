@@ -1,5 +1,14 @@
 #include "locate.h"
 
+#include <map>
+#include <utility>
+
+float distanceBetweenTwoLatLons(float,float,float,float);
+
+Point latLonToPoint(float,float);
+
+void pointToLatLon(const Point&,float*,float*);
+
 //the furthest possible distance in the x direction on the map (horizontally)
 float X_MAX;
 //the furthest possible distance in the y direction on the map (vertically)
@@ -13,6 +22,85 @@ float lat_diff;
 //the longitude difference of the rectangle area, that is, the furthest two points' difference in longitude
 float lon_diff;
 const float EARTH_RADIUS = 6372797; //in metres, approximation from Wikipedia
+
+//keeps all previously calculated WAP locations along with number of samples used to determine
+std::map<std::string, std::pair<Point, int> > macSamples;
+
+float haversine(float f)
+{
+	return pow(sin(f/2),2);
+}
+
+bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector<int32_t>& rssis, float *lat, float *lon)
+{
+	std::vector<Circle> circles;
+	for(unsigned int i = 0; i < MACs.size(); i++)
+	{
+		Point p = macSamples[MACs[i]].first;
+		float radius = fabs(rssis[i]);
+		Circle c(p, radius);
+		circles.push_back(c);
+	}
+	if(circles.size() < 3)
+	{
+		return false;
+	}
+	Point location;
+	try
+	{
+		locatePosition(circles,&location, 0);
+	}
+	catch(int e)
+	{
+		if(e == NO_POINT_SAMPLES_GENERATED)
+			return false;
+		else
+			exit(1);
+	}
+	//converts point to latitude and longitude through pass by reference
+	pointToLatLon(location, lat, lon);
+	return true;
+}
+
+bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float>& lons, const std::vector<int32_t>& rssis, const std::string& macAddress)
+{
+	std::vector<Circle> circles;
+	size_t nCircles = std::min(lats.size(), std::min(lons.size(), rssis.size()));
+	for(size_t i = 0; i < nCircles; i++)
+	{
+		Point p = latLonToPoint(lats[i],lons[i]);
+		float rad = fabs(rssis[i]); //temporary conversion technique
+		Circle c(p, rad);
+		circles.push_back(c);
+	}
+	if(circles.size() < 3)
+	{
+		return false;
+	}
+	else
+	{
+		try
+		{
+			Point p; //at origin
+			int nPrevious = 0;
+			if(macSamples.find(macAddress) != macSamples.end())
+			{
+				p = macSamples[macAddress].first;
+				nPrevious = macSamples[macAddress].second;
+			}
+			locatePosition(circles, &p, &nPrevious);
+			macSamples[macAddress] = std::pair<Point, int>(p,nPrevious);
+		}
+		catch(int e)
+		{
+			if(e == NO_POINT_SAMPLES_GENERATED)
+				return false;
+			else
+				exit(1);
+		}
+	}
+	return true;
+}
 
 void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 {
@@ -91,7 +179,7 @@ float distanceBetweenTwoLatLons(float lat1, float lon1, float lat2, float lon2)
 	return distance;
 }
 
-Point latLonToXY(float lat, float lon)
+Point latLonToPoint(float lat, float lon)
 {
 	float x, y;
 	//crude method to account for variations in radii parallel to equator as latitude changes
@@ -126,9 +214,4 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 	//set difference as absolute value
 	lat_diff = fabs(lat1-lat2);
 	lon_diff = fabs(lon1-lon2);
-}
-
-float haversine(float f)
-{
-	return pow(sin(f/2),2);
 }

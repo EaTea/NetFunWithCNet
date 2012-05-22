@@ -1,4 +1,4 @@
-#include "locate.h"
+#include "trilaterate.h"
 
 using namespace std;
 
@@ -118,13 +118,29 @@ void testSeven()
 	testGeneric(i, c1, c2, c3);
 }
 
+/*
+	If all three circles intersect in a region.
+*/
+void testEight()
+{
+	int i = 8;
+	Point a(2, 3);
+	Circle c1(origin, 5);
+	Point b(3,4);
+	Circle c2(b, 5);
+	Point c(0, 2);
+	Circle c3(c, 6);
+	testGeneric(i, c1, c2, c3);
+}
+
 int main()
 {
-	testOne();
+	/*testOne();
 	testTwo();
 	testThree();
 	testFour();
-	testFive();
+	testFive();*/
 	testSix();
 	testSeven();
+	testEight();
 }

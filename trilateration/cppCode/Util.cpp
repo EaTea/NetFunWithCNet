@@ -1,4 +1,4 @@
-#include "locate.h"
+#include "trilaterate.h"
 
 void PRINT_ERR(const char* s,...)
 {
