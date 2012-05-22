@@ -1,4 +1,4 @@
-TARGET = Test
+TARGET = TestTrilateration
 CDEP = Circle Point Util Trilateration Location $(TARGET) 
 CFILES = $(patsubst %, %.cpp, $(CDEP))
 COBJ = $(patsubst %, %.o, $(CDEP))

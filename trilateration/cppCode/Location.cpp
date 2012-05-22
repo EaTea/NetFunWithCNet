@@ -221,7 +221,7 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 
 void readFileToSamples(const char* fileName)
 {
-	FILE* fileToRead = fopen(fileName.c_str(),"r");
+	FILE* fileToRead = fopen(fileName,"r");
 	while(!feof(fileToRead))
 	{
 		float lat, lon;
