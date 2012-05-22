@@ -1,6 +1,5 @@
 #include <stdio.h>
-#include <string>
 
-void readFileToSamples(std::string&);
+void readFileToSamples(const char*);
 
-void writeSamplesToFile(std::string&);
+void writeSamplesToFile(const char*);

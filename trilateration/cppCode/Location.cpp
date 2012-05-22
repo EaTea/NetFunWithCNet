@@ -219,7 +219,7 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 	lon_diff = fabs(lon1-lon2);
 }
 
-void readFileToSamples(std::string& fileName)
+void readFileToSamples(const char* fileName)
 {
 	FILE* fileToRead = fopen(fileName.c_str(),"r");
 	while(!feof(fileToRead))
@@ -229,7 +229,7 @@ void readFileToSamples(std::string& fileName)
 		int n;
 		if(fscanf(fileToRead,"%s,%f,%f,%d",name,&lat,&lon,&n))
 		{
-			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\"", fileName.c_str());
+			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\"", fileName);
 			continue;
 		}
 		macSamples[name] = std::pair<Point,int>(latLonToPoint(lat,lon),n);
@@ -237,10 +237,10 @@ void readFileToSamples(std::string& fileName)
 	fclose(fileToRead);
 }
 
-void writeSamplesToFile(std::string& fileName)
+void writeSamplesToFile(const char* fileName)
 {
 	//open filestream
-	FILE* fileToWrite = fopen(fileName.c_str(),"w+");
+	FILE* fileToWrite = fopen(fileName,"w+");
 
 	//construct iterator to beginning of map 
 	std::map<std::string, std::pair<Point, int> >::iterator sample = macSamples.begin();
