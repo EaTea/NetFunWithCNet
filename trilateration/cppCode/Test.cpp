@@ -18,6 +18,17 @@ int main(int argc, const char** argv)
 	testTrilateration();
 #endif
 
+#ifdef TEST_SERIAL_WRITE
+	#ifdef VERBOSE
+		PRINT_ERR("Testing serialisation writing\n");
+	#endif
+	if(argc < 2)
+	{
+		PRINT_ERR("Testing serialisation write but not enough arguments passed to main, please specify a filename as parameter to this program\n");
+	}
+	testSerialWrite(argv[1]);
+#endif
+
 #ifdef TEST_SERIAL_READ
 	#ifdef VERBOSE
 		PRINT_ERR("Testing serialisation reading\n");
@@ -29,14 +40,4 @@ int main(int argc, const char** argv)
 	testSerialRead(argv[1]);
 #endif
 
-#ifdef TEST_SERIAL_WRITE
-	#ifdef VERBOSE
-		PRINT_ERR("Testing serialisation writing\n");
-	#endif
-	if(argc < 2)
-	{
-		PRINT_ERR("Testing serialisation write but not enough arguments passed to main, please specify a filename as parameter to this program\n");
-	}
-	testSerialWrite(argv[1]);
-#endif
 }
