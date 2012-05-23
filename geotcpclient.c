@@ -4,18 +4,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>      // for close(), sleep()
-#include <string.h>      // for memset()
+#include <unistd.h>       // for close(), sleep()
+#include <string.h>       // for memset(), strtok()
 #include <netdb.h>
 #include <time.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <sys/socket.h>  // for socket(), connect(), send(), and recv()
-#include <arpa/inet.h>   // for sockaddr_in and inet_addr()
+#include <sys/socket.h>   // for socket(), connect(), send(), and recv()
+#include <arpa/inet.h>    // for sockaddr_in and inet_addr()
 
-#define SENDTRIES 3    	// Number of consecutive zero-byte sends allowed
-#define WHITESPACE " \t"
-#define CACHESECONDS 1800
+#define SENDTRIES 3		  // Number of consecutive zero-byte sends allowed
+#define WHITESPACE " \t"  // Characters interpreted as whitespace
+#define CACHESECONDS 1800 // Number of seconds before a photo is deemed old
+#define CACHESIZE	 1024 // Number of coordinates for which to store photos
 
 #define PHOTO_PORT 3230			// Port of photoserver TCP connection
 #define PHOTO_IP "130.95.1.70"	// IP of photoserver TCP connection
@@ -24,7 +25,7 @@
 // TODO
 // - Put all common functons (e.g. the Dies) into a common source file, using header.
 // - Image Caching: use global unsigned int to keep track of filenames, with filename
-//   number being index into ImageData array and timeStamp used to check for recent images
+//   number being index into ImageData array 
 
 typedef enum {
 	FACING_N, FACING_S, FACING_E, FACING_W
@@ -36,9 +37,15 @@ typedef struct {
 } latLon;
 
 typedef struct {
+	float lat;
+	float lon;
+	FACING facing;
+} view;
+
+typedef struct {
     size_t nBytes;
-    struct tm* timeStamp;
-    char* fileName;
+    time_t timeStamp;
+    char fileName[25];
 } imageData;
 
 void DieWithUserMessage(const char *msg, const char *detail) {
@@ -213,7 +220,7 @@ int photo_getArea (latLon* topLeft, latLon* botRight) {
 	
 	// Send command: ask for area
 	char buffer[BUFSIZ];
-	photo_command(sock_photo, addr_photo, "area \r\n", buffer);
+	photo_command(sock_photo\, addr_photo, "area \r\n", buffer);
 	char* word = strtok(buffer, WHITESPACE);
 	// Grab the expected four floats and record them in the provided latLon structs
 	topLeft->lat = atof(word = strtok(NULL, WHITESPACE));
@@ -229,9 +236,9 @@ int photo_getArea (latLon* topLeft, latLon* botRight) {
 ** 
 ** Prepares an imageData object for the given location / direction combination
 */
-int photo_getImageData (latLon *loc, FACING facing,  imageData *image) {
+int photo_getImageData (imageData *image, view *view) {
 
-	// Prepare Socket Name & Address Info
+	// Prepare Socket Name & Address Info 
 	int sock_photo = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
     if(sock_photo<0) DieWithSystemMessage("socket() failed");
 	struct sockaddr_in addr_photo = prepSocketAddr(PHOTO_IP, PHOTO_PORT);
@@ -240,61 +247,136 @@ int photo_getImageData (latLon *loc, FACING facing,  imageData *image) {
     if(connect(sock_photo, (struct sockaddr *)&addr_photo, sizeof(addr_photo))<0)
         DieWithSystemMessage("connect() failed");
 	
-	// Prep message
+	// Prepare message
 	char direction;
-	if(facing == FACING_N) direction = 'N';
-	else if(facing == FACING_S) direction = 'S';
-	else if(facing == FACING_E) direction = 'E';
-	else if(facing == FACING_W) direction = 'W';
+	if(view->facing == FACING_N) direction = 'N';
+	else if(view->facing == FACING_S) direction = 'S';
+	else if(view->facing == FACING_E) direction = 'E';
+	else if(view->facing == FACING_W) direction = 'W';
 	char msg[50];
-	sprintf(msg, "view %f %f %c \r\n", loc->lat, loc->lon, direction);
+	sprintf(msg, "view %f %f %c \r\n", view->lat, view->lon, direction);
 	// Send message: ask for area	
 	char buffer[BUFSIZ];
 	photo_command(sock_photo, addr_photo, msg, buffer);
 	
-	// --- Grab the expected words and store them in the image struct
-	char* word = strtok(buffer, WHITESPACE);
+	// *** Grab the expected words and store them in the image struct ***
 	// Image size in Bytes
+	char* word = strtok(buffer, WHITESPACE);
 	image->nBytes = atoi(word = strtok(NULL, WHITESPACE));
+	
+	// Prepare and fill time info struct
+	time_t rawtime;
+	time(&rawtime);
+	struct tm *timeInfo = localtime (&rawtime);
+	// Day of the week (IGNORED)
 	word = strtok(NULL, WHITESPACE);
-	// Time info (grouping remaining [time] tokens into a single string)
-	char time[40];
-	while(word != NULL) {
-		strcat(time, word);
-		strcat(time, " ");
-		word = strtok(NULL, WHITESPACE);
+	// Day of the month
+	timeInfo->tm_mday = atoi(word = strtok(NULL, WHITESPACE));
+	// Month of the year
+	int mth = 0;
+	char* months[12] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+	word = strtok(NULL, WHITESPACE);
+	while(mth < 12){
+		if(strcmp(word, months[mth]) == 0) break;
+		mth++;
 	}
-	strptime(time, "%a, %d %b %y %H:%M:%S +0800 ", &image->timeStamp);
+	if(mth == 12) DieWithUserMessage("photo_getImageData()", "Could not identify month"); 
+	timeInfo->tm_mon = mth;
+	// Year
+	timeInfo->tm_year = atoi(word = strtok(NULL, WHITESPACE))+100;
+	// Hour:Minute:Second
+	word = strtok(NULL, WHITESPACE);
+	sscanf(word, "%d:%d:%d", &timeInfo->tm_hour, &timeInfo->tm_min, &timeInfo->tm_sec);
+	
+	time_t t = mktime(timeInfo);
+	image->timeStamp = t;
+	
 	// --- Read the image, writing it to a file
-	readSocketToFile (sock_photo, image->nBytes, "PS-cache-0.PNG");
+	readSocketToFile (sock_photo, image->nBytes, image->fileName);
 	close(sock_photo);
 	return 0;
 }
 
+int isValidLoc(latLon topLeft, latLon botRight, view point) {
+	if (point.lat > topLeft.lat || point.lat < botRight.lat ||
+	point.lon < topLeft.lon || point.lon > botRight.lon) return -1;
+	else return 0;	
+}
+
+/*
+** Returns the index of the point in the cache, or -1 on error
+ */
+int cacheImage(view vcache[], imageData icache[], int *cacheNum, int *cacheCycler, view point) {
+	
+	// Check cache...
+	int index = 0;
+	while(index < *cacheNum){
+		if( vcache[index].lat == point.lat && vcache[index].lon == point.lon
+		&& vcache[index].facing == point.facing) return index;
+		index++;
+	}	    
+	if (index < *cacheNum) {	// Cached image exists: is it recent enough?
+		time_t now;
+		time(&now);
+		if( ( (int) ( difftime(now, icache[index].timeStamp) ) ) < CACHESECONDS)
+			// Existing image is recent enough: don't bother fetching a newer one
+			return index;		
+	} else {
+		// No existing image: check if room in cache for more
+		if(*cacheNum == CACHESIZE) {
+			index = *cacheCycler;	// Overwrite "oldest" (by index) cached item
+			*cacheCycler = (*cacheCycler+1) % CACHESIZE;
+		}
+		// Cache view and image info
+		vcache[index].lat = point.lat;
+		vcache[index].lon = point.lon;
+		vcache[index].facing = point.facing;
+		char nameBuffer[25];
+		sprintf(nameBuffer, "PS-cache-%d.PNG", index);
+		strcpy(icache[index].fileName, nameBuffer);
+		*cacheNum = *cacheNum +1;
+	}
+	// Either the existing image was outdated, or none existed 
+	photo_getImageData (&icache[index], &vcache[index]);
+	return index;	
+}
+
 int main(int argc, char *argv[]){
     
-	// Set up variables
+	// Prepare topLeft / botRight information
 	latLon topLeft, botRight;
     memset(&topLeft, 0, sizeof(topLeft));
 	memset(&botRight, 0, sizeof(botRight));
-	
 	photo_getArea(&topLeft, &botRight);
 	
-	latLon testLoc;
-	testLoc.lat = -31.978807;
-	testLoc.lon = 115.818037;
+	// Prepare image Cache
+	imageData imageCache[CACHESIZE];
+	memset(&imageCache, 0, sizeof(imageCache));
+	view viewCache[CACHESIZE];
+	memset(&imageCache, 0, sizeof(imageCache));
+	int cacheNum = 0;
+	int cacheCycler = 0;
 	
-	imageData image;
-	memset(&image.timeStamp, 0, sizeof(image.timeStamp));	
-	memset(&image, 0, sizeof(image));
-
-    // TODO: Check if cached image exists and is recent enough first	
+	// Prepare sample data (or in reality: requested view)
+	view testPoint;
+	testPoint.lat = -31.97880;
+	testPoint.lon = 115.81803;
+	testPoint.facing = FACING_N;
 	
-	// Fetch photoserver image for a given location (TESTING DATA USED)
-	photo_getImageData (&testLoc, FACING_N, &image);
+	// Check that requested coordinates are within area served by photoserver
+	if(isValidLoc(topLeft, botRight, testPoint) == -1) {
+		// NOTIFY CLIENT OF THIS...
+		// ...
+		// (Debug)
+		fputs("testPoint outside of bounds", stderr);
+	} else {
+		// Cache image
+		int index = cacheImage(viewCache, imageCache, &cacheNum, &cacheCycler, testPoint);
+		// SEND IMAGE TO CLIENT	
+		
+	}
+	// NOTE: location-based caching should also be done on the iOS app, 
+	// with the addition of checks for significant movement to reduce unnecessary transmissions
 	
-	// Time functions not working yet..
-	//printf( "Time: %s\n", asctime(image.timeStamp));
-	
-    exit(0);      
+    exit(0);
 }
