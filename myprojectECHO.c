@@ -107,9 +107,10 @@ void now_hearing(float lat, float lon, int nAPs, const APINFO *APs)
     DEBUG("MAC Written: %s\n", APs[i].mac);
     num = fwrite( &APs[i].rssi , sizeof(APs[i].rssi) ,4, outstream);
     DEBUG("Number RSSI written: %d\n", num);
-    DEBUG("RSSI Written: %d\n", APs[i].rssi);
-       
+    DEBUG("RSSI Written: %d\n", APs[i].rssi);  
     }
+    
+    
     fclose(outstream);
     
    /* size_t helloStringLen = strlen(helloString);
