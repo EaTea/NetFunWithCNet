@@ -68,6 +68,10 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 {
 	//generate circles
 	std::vector<Circle> circles;
+#ifdef VERBOSE
+	PRINT_ERR("Finding current position\n");
+	PRINT_ERR("Processing %d MACs\n", MACs.size());
+#endif
 	for(unsigned int i = 0; i < MACs.size(); i++)
 	{
 		//no established values for this MAC, skip and continue
@@ -82,6 +86,10 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 
 	if(circles.size() < 3)
 	{
+#ifdef VERBOSE
+	PRINT_ERR("Not enough known WAPs at this position\n");
+	PRINT_ERR("Needed at least 3 WAP samples but only found %d\n", circles.size());
+#endif
 		return false;
 	}
 	Point location;
@@ -94,7 +102,12 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 	{
 		//couldn't find position, so no samples were generated
 		if(e == NO_POINT_SAMPLES_GENERATED)
+		{
+#ifdef VERBOSE
+	PRINT_ERR("Not enough potential positions found during trilateration\n");
+#endif
 			return false;
+		}
 		else
 			exit(1);
 	}
@@ -105,6 +118,10 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 
 bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float>& lons, const std::vector<int32_t>& rssis, const std::string& macAddress)
 {
+#ifdef VERBOSE
+	PRINT_ERR("Approximating position of WAP %s\n", macAddress.c_str());
+	PRINT_ERR("Found %d samples associated with %s\n", lats.size(),macAddress.c_str());
+#endif
 	//constructing all circles from lat, lons, rssis
 	std::vector<Circle> circles;
 	size_t nCircles = std::min(lats.size(), std::min(lons.size(), rssis.size()));
@@ -118,6 +135,10 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 	//not enough samples
 	if(circles.size() < 3)
 	{
+#ifdef VERBOSE
+	PRINT_ERR("Not enough potential samples for this WAP\n");
+	PRINT_ERR("Needed at least 3 WAP samples but only found %d\n", circles.size());
+#endif
 		return false;
 	}
 	else
@@ -141,10 +162,18 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 		{ 
 			//no point samples generated for this WAP
 			if(e == NO_POINT_SAMPLES_GENERATED)
+			{
+#ifdef VERBOSE
+	PRINT_ERR("Not enough potential positions found during trilateration\n");
+#endif
 				return false;
+			}
 			//some other error, exit with error
 			else
+			{
+				PRINT_ERR("Encountered unexpected error %d, exiting\n",e);
 				exit(e);
+			}
 		}
 	}
 	return true;
@@ -157,6 +186,9 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 	xSum = ySum = 0;
 	nPoints = 0;
 
+#ifdef VERBOSE
+	PRINT_ERR("Performing all trilateration calculations\n");
+#endif
 	//perform nChoose3 trilateration calculations
 	for(size_t i = 0; i < v.size(); i++)
 	{
@@ -179,7 +211,7 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 						continue;
 					else
 					{
-						PRINT_ERR("Trilateration encountered unexpected error, closing\n");
+						PRINT_ERR("Trilateration encountered unexpected error %d, closing\n",e);
 						exit(e);
 					}
 				}
@@ -276,6 +308,9 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 
 void readSamplesFromFile(const char* fileName)
 {
+#ifdef VERBOSE
+	PRINT_ERR("Reading samples from %s\n", fileName);
+#endif
 	//open filestream
 	FILE* fileToRead = fopen(fileName,"r");
 	//make line buffer
@@ -309,6 +344,9 @@ void readSamplesFromFile(const char* fileName)
 
 void writeSamplesToFile(const char* fileName)
 {
+#ifdef VERBOSE
+	PRINT_ERR("Writing samples to %s\n", fileName);
+#endif
 	//open filestream
 	FILE* fileToWrite = fopen(fileName,"w+");
 

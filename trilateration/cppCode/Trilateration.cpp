@@ -55,10 +55,12 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	bcIntersect = fabs(dbc-rb) < rc && rc < dbc+rb;
 
 	//debug statements
+#ifdef VERBOSE
 	PRINT_ERR("Attempting to trilaterate:\n");
 	PRINT_ERR("Centre:(%f, %f) Radius:%f\n",ca.getX(), ca.getY(), ra);
 	PRINT_ERR("Centre:(%f, %f) Radius:%f\n",cb.getX(), cb.getY(), rb);
 	PRINT_ERR("Centre:(%f, %f) Radius:%f\n",cc.getX(), cc.getY(), rc);
+#endif
 	//insufficient number of intersections will result in throwing exception
 	if(!abIntersect || !acIntersect || !bcIntersect)
 	{
@@ -90,9 +92,6 @@ Point __trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	Point yUnitVector = getYUnit(ca, cc, i, xUnitVector);	
 	//"vertical" component (transformed space) of difference between circle centers
 	float j = signedMagnitudeY(ca, cc, yUnitVector);
-	PRINT_ERR("%f %f\n",xUnitVector.getX(),xUnitVector.getY());
-	PRINT_ERR("%f %f\n",yUnitVector.getX(),yUnitVector.getY());
-	PRINT_ERR("%f %f\n",i,j);
 
 	float d = getDistance(ca, cb);
 	//the intersection point relative to origin in transformed co-ordinate space
@@ -120,11 +119,8 @@ float signedMagnitudeX(const Point& ca, const Point& cc, const Point& xUnit)
 
 Point getYUnit(const Point& ca, const Point& cc, const float xMag, const Point& xUnit)
 {
-	printf("xUnit:%f %f\n", xUnit.getX(), xUnit.getY());
 	Point xTimesXMag = xUnit * xMag;//scalar multiplication
-	printf("xtimes: %f %f\n",xTimesXMag.getX(),xTimesXMag.getY());
 	Point nonUnitVector = cc - ca - xTimesXMag;
-	printf("nonUnit: %f %f\n",nonUnitVector.getX(),nonUnitVector.getY());
 	return getUnitPoint(nonUnitVector); //normalise to unit vector
 }
 
