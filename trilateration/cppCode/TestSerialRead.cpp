@@ -1,5 +1,4 @@
-#include "locate.h"
-#include "serialise.h"
+#include "trilaterate.h"
 using namespace std;
 
 void testSerialRead(const char* filename)

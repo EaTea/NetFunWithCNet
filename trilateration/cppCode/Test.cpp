@@ -1,5 +1,4 @@
 #include "test.h"
-#include "debug.h"
 
 //if this line is uncommented, test serialisation reading from file
 #define TEST_SERIAL_READ

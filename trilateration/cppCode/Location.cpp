@@ -1,8 +1,20 @@
-#include "locate.h"
-#include "serialise.h"
+#include "trilaterate.h"
 
-#include <map>
 #include <utility>
+
+/*
+	Given a vector of n Circles, perform nC3 unique trilateration calculations
+	Find the centroid of the trilateration points plus the previously calculated
+	centroid multiplied by its previous weighting to find the new centroid and the
+	new number of samples required to generate it
+	Returns through pass by reference
+*/
+void locatePosition				(
+														const std::vector<Circle>&, //circle samples of a specific location
+														Point *, //the previously calculated location
+														int * //the number of samples involved in calculation of previous location
+													);
+
 
 /*
 	Find the floating point representation of distance between two lat lons
