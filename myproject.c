@@ -1,11 +1,14 @@
+#define _POSIX_C_SOURCE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_addr() */
 
-#include <ipod3230.h>
+#include "ipod3230.h"
 
 char *servIP;
 in_port_t servPort;
@@ -13,9 +16,9 @@ int sock;
 struct sockaddr_in servAddr;
 
 
-int SetupTCPClientSocket(unsigned short port) {
+void SetupTCPClientSocket(unsigned short port) {
     
-    int sock = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+    sock = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
     if(sock<0)
         DEBUG("%s(%d): socket() failed", __func__, port);
     
@@ -34,6 +37,22 @@ int SetupTCPClientSocket(unsigned short port) {
         DEBUG("%s(%d): connect() failed", __func__, port);
     
 }
+
+
+uint32_t htonf(float f)
+{
+    uint32_t p;
+    uint32_t sign;
+    
+    if (f < 0) { sign = 1; f = -f; }
+    else { sign = 0; }
+    
+    p = ((((uint32_t)f)&0x7fff)<<16) | (sign<<31); // whole part and sign
+    p |= (uint32_t)(((f - (int)f) * 65536.0f))&0xffff; // fraction
+    
+    return p;
+}
+
 
 
 
@@ -67,22 +86,52 @@ void set_geoserver(const char *hostname, int16_t port)
 
 void now_hearing(float lat, float lon, int nAPs, const APINFO *APs)
 {
-    char *helloString = "Hello World\r\n";
+        
     
-    DEBUG("%s(nAPs=%d)\n", __func__, nAPs);
-    for(int n=0 ; n<nAPs ; ++n) {
-	DEBUG("  %s\n", APs[n].ssid);
-	DEBUG("    %s  - %d\n", APs[n].mac, APs[n].rssi);
+    /* When now hearing is pressed a IPOD_SAMPLE struct is made and then is sent to the geoserver.
+     
+     */
+    IPOD_SAMPLE sample;
+        
+    sample.lat = lat;
+    sample.lon = lon;
+    sample.nAPs = nAPs;
+    sample.APs = (APINFO *)malloc(nAPs*sizeof(APINFO));
+    for(int i=0; i<nAPs; i++){
+        sample.APs[i]=APs[i];
     }
     
     SetupTCPClientSocket(servPort);
+    DEBUG("SetupTCPClientSocket passed\n");
+    FILE *outstream = fdopen(sock, "w");
+    DEBUG("Opened outstream\n");
     
-    size_t helloStringLen = strlen(helloString);
-    ssize_t numBytes = send(sock, helloString, helloStringLen, 0);
-    if(numBytes <0)
-        DEBUG("%s(): send() failed", __func__);
-    else if(numBytes != helloStringLen)
-        DEBUG("%s(): send() sent unexpected number of bytes", __func__);
+    int NETWORKnAPs=htonl(sample.nAPs);
+    if(fwrite( &NETWORKnAPs,sizeof(NETWORKnAPs),1, outstream) != 1){
+        DEBUG("fwrite()nAPs failed\n");
+    }
+    
+    sample.lat =htonf(sample.lat);
+    sample.lon =htonf(sample.lon);
+    fwrite(&sample.lat, sizeof(sample.lat),1,outstream);
+    fwrite(&sample.lon, sizeof(sample.lon),1,outstream);
+    
+    fflush(outstream);
+    
+    DEBUG("nAPs Written: %d\n", sample.nAPs);
+    
+    
+    for(int i=0; i<sample.nAPs; i++){
+        int num = fwrite( &sample.APs[i].ssid,sizeof(char),32, outstream);
+        DEBUG("SSID Written: %s\n", sample.APs[i].ssid);
+        fwrite( &sample.APs[i].mac,sizeof(char),18, outstream);
+        DEBUG("MAC Written: %s\n", sample.APs[i].mac);
+        fwrite( &sample.APs[i].rssi , sizeof(sample.APs[i].rssi) ,1, outstream);
+        DEBUG("RSSI Written: %d\n", sample.APs[i].rssi);
+    } 
+    
+    
+    fclose(outstream);
     
     
 }
@@ -94,6 +143,43 @@ void now_hearing(float lat, float lon, int nAPs, const APINFO *APs)
 void now_facing(FACING dir, int nAPs, const APINFO *APs)
 {
     DEBUG("%s(%c, nAPs=%d)\n", __func__, "NSEW"[(int)dir], nAPs);
+    
+    
+    char *filename = "/private/var/tmp/sampleimage.png";
+    SetupTCPClientSocket(servPort);
+    
+    FILE *instream = fdopen(sock, "r");
+    if(instream == NULL)
+        DEBUG("fdopen() failed\n");
+    
+    int imageNBytes;
+    
+    fread(&imageNBytes, sizeof(int), 1, instream);
+    imageNBytes = ntohl(imageNBytes);
+    DEBUG("Image Size: %d bytes\n", imageNBytes);
+    
+    FILE *photo =  fopen(filename, "wb+");
+    if(photo ==NULL) {
+    	DEBUG("fopen() failed\n");
+    }
+    
+    char buffer[imageNBytes];
+    int num = fread(buffer, sizeof(char), imageNBytes, instream);
+    
+    if( num != imageNBytes){
+        DEBUG("read an unexpectd number of bytes from instream: %d\n", num);
+    }  else {
+        DEBUG("read %d bytes from instream\n", num);
+    }   
+    
+    
+    num = fwrite(buffer, sizeof(char), imageNBytes, photo);
+    DEBUG("wrote %d bytes to photo\n", num);
+    
+    fclose(photo);
+    fclose(instream);
+    
+    set_current_photo(filename);
 }
 
 //  FUNCTION finalize_application() IS CALLED JUST BEFORE THE APPLICATION
@@ -102,10 +188,39 @@ void now_facing(FACING dir, int nAPs, const APINFO *APs)
 
 void finalize_application(void)
 {
-    DEBUG("%s()\n", __func__);
+
+
+    
+
+    
+    
 }
 
 /*
  *  vim: ts=8 sw=4
  */
+
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
 

@@ -1,11 +1,16 @@
+#define _POSIX_C_SOURCE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>      // for memset()
 #include <unistd.h>      // for close()
 #include <sys/socket.h>  // for socket(), connect(), send(), and recv()
 #include <sys/types.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>   // for sockaddr_in and inet_addr()
 #include <netinet/in.h>
+#include "ipod3230.h"
+
 
 static const int MAXPENDING = 5; //Max. outstanding connection requests
 
@@ -20,6 +25,16 @@ void DieWithUserMessage(const char *msg, const char *detail) {
 void DieWithSystemMessage(const char *msg) {
     perror(msg);
     exit(1);
+}
+
+float ntohf(uint32_t p)
+{
+    float f = ((p>>16)&0x7fff); // whole part
+    f += (p&0xffff) / 65536.0f; // fraction
+    
+    if (((p>>31)&0x1) == 0x1) { f = -f; } // sign bit set
+    
+    return f;
 }
 
 int SetupTCPServerSocket(unsigned short port){
@@ -73,54 +88,78 @@ int AcceptTCPConnection(int servSock) {
 
 void geoAppProtocol(int clntSocket) {
   
+   FILE *instream = fdopen(clntSocket, "r+");
+   if(instream == NULL)
+        DieWithSystemMessage("fdopen() failed");
    
-    char buffer[BUFSIZ]; //Buffer for IPOD request 
+    IPOD_SAMPLE sample;
     
-    //Receive request from IPOD
     
-    ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZ, 0);
-    if(numBytesRcvd < 0)
-        DieWithSystemMessage("recv() failed");
-    ssize_t numBytesRcvdTotal = numBytesRcvd;
-    
-    while(numBytesRcvd > 0) {
-        numBytesRcvd = recv(clntSocket, buffer, BUFSIZ, 0);
-        if( numBytesRcvd < 0)
-            DieWithSystemMessage("rcvd() failed");
-        numBytesRcvdTotal = numBytesRcvdTotal + numBytesRcvd;
+    if( fread(&sample.nAPs, sizeof(int), 1, instream)!= 1){
+        DieWithSystemMessage("fread() failed\n");
     }
-    printf("Message: %s\n", buffer);
     
+    fread(&sample.lat, sizeof(sample.lat),1,instream);
+    fread(&sample.lon, sizeof(sample.lon),1,instream);
     
-    /*
-    int8_t numSamples;
-    
-    ssize_t numBytesRcvd = recv(clntSocket,(void*)(&numSamples),1, 0);
-    if(numBytesRcvd < 0)
-        DieWithSystemMessage("recv() failed");
-    
-    printf("Number of Samples to receive: %d\n", numSamples);
+    sample.nAPs = ntohl(sample.nAPs);
+    sample.lat =ntohf(sample.lat);
+    sample.lon =ntohf(sample.lon);
+    printf("Number of APs: %d\n",sample.nAPs);
+    printf("Latitude, Longitude: %f %f\n", sample.lat, sample.lon);
 
     
-    IPOD_SAMPLE samples[numSamples]; 
-    //wrap the socket in an input stream
-    FILE *instream = fdopen(clntSocket, "r");
-    if(instream == NULL)
-        DieWithSystemMessage("fdopen() failed");
-    
-    for(int i=0; i<numSamples; i++){
-        if(fread(&samples[i], sizeof(IPOD_SAMPLE), 1, instream) != 1)
-            DieWithSystemMessage("fread() failed");
+    sample.APs = (APINFO*)malloc(sample.nAPs*sizeof(APINFO));
+   
+    for(int i=0; i<sample.nAPs; i++){
+    fread(&sample.APs[i].ssid, sizeof(char) ,32, instream);
+    fread(&sample.APs[i].mac, sizeof(char) ,18, instream);
+    fread(&sample.APs[i].rssi, sizeof(int32_t),1, instream);	    
     }
-    
-    fclose(instream); //close the socket connection
-    */
-    
-    //TODO: Collate and Calculate (lat, lon)
-    
-    
+    fclose(instream);//close the socket connection
+   
+    for(int i=0; i<sample.nAPs; i++){
+    printf("AP %d SSID: %s\n",i, sample.APs[i].ssid);
+   	printf("AP %d MAC: %s\n",i, sample.APs[i].mac);
+   	printf("AP %d RSSI: %d\n",i,sample.APs[i].rssi);
+    }
 }
 
+void SendImage(int clntSocket){
+    
+    
+    const char *filename = "/Users/20356245/Desktop/sampleimage.png";
+    FILE *outstream = fdopen(clntSocket, "wb");
+    FILE *image2send = fopen(filename, "rb");
+    printf("Opened  both files\n");
+    
+    
+    fseek(image2send, 0L, SEEK_END);
+ 	int imageNBytes = ftell(image2send);
+    fseek(image2send, 0L, SEEK_SET);
+    
+    
+    
+    int NETWORKimageNBytes = htonl(imageNBytes);
+    if(fwrite( &NETWORKimageNBytes,sizeof(NETWORKimageNBytes),1, outstream) != 1){
+        printf("fwrite() imageNBytes failed\n");
+    }
+    
+    printf("imageNBytes Written: %d\n", imageNBytes);
+    char buffer[imageNBytes];
+    fread(buffer, sizeof(char), imageNBytes, image2send);
+    
+    printf("fopened() filename\n");
+    int numbat = fwrite(buffer, sizeof(char), imageNBytes, outstream);
+    if(numbat!= imageNBytes){
+        printf("fwrite() FAILED!!!!: wrote %d bytes\n", numbat);
+    }
+    printf("fwrote() image\n");
+    fclose(image2send);
+    fclose(outstream);
+    printf("fclosed() both streams\n");
+    
+}
 
 int main(int argc, char *argv[]){
     
@@ -129,12 +168,19 @@ int main(int argc, char *argv[]){
     
     in_port_t servPort = atoi(argv[1]); //First arg: local port
     
+    
+    //TODO: request area from photoserver and intitialise etc.
+    
     int servSock = SetupTCPServerSocket(servPort);
         
     while(1) {        
-        int clntSock = AcceptTCPConnection(servSock);
-        geoAppProtocol(clntSock);
+        int clientSock = AcceptTCPConnection(servSock);
         
+        
+        
+        
+        geoAppProtocol(clientSock);
+        SendImage(clientSock);
     }
     
     //NOT REACHED
