@@ -7,7 +7,7 @@ WRITE_DEP = $(CDEP) $(SERIAL_WRITE_TARGET)
 TRIL_DEP = $(CDEP) $(TRILATERATE_TARGET) 
 CFILES = $(patsubst %, %.cpp, $(CDEP))
 COBJ = $(patsubst %, %.o, $(CDEP))
-HEADS = locate.h trilaterate.h serialise.h
+HEADS = locate.h trilaterate.h serialise.h debug.h
 CFLAGS = -Wall -Werror -pedantic -ggdb -O2 -lm
 
 serialReadTest: $(SERIAL_READ_TARGET)
