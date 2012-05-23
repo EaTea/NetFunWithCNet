@@ -8,7 +8,7 @@ TRIL_DEP = $(CDEP) $(TRILATERATE_TARGET)
 CFILES = $(patsubst %, %.cpp, $(CDEP))
 COBJ = $(patsubst %, %.o, $(CDEP))
 HEADS = locate.h trilaterate.h serialise.h
-CFLAGS = -Wall -Werror -pedantic -ggdb -O2 -lm #-fno-stack-protector
+CFLAGS = -Wall -Werror -pedantic -ggdb -O2 -lm
 
 serialReadTest: $(SERIAL_READ_TARGET)
 

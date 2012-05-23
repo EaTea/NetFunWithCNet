@@ -72,8 +72,10 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 	{
 		//no established values for this MAC, skip and continue
 		if(macSamples.find(MACs[i]) == macSamples.end()) continue;
+		//get the point the WAP specified by this MAC supposedly resides at
 		Point p = macSamples[MACs[i]].first;
-		float radius = fabs(rssis[i]);
+		//note: number of previous samples is irrelevant
+		float radius = fabs(rssis[i]); //TODO: bad hack to convert rssi to distance in m
 		Circle c(p, radius);
 		circles.push_back(c);
 	}
@@ -85,10 +87,12 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 	Point location;
 	try
 	{
+		//find a new position and write the calculated position to location
 		locatePosition(circles,&location, 0);
 	}
 	catch(int e)
 	{
+		//couldn't find position, so no samples were generated
 		if(e == NO_POINT_SAMPLES_GENERATED)
 			return false;
 		else
@@ -128,15 +132,19 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 				p = macSamples[macAddress].first;
 				nPrevious = macSamples[macAddress].second;
 			}
+			//calculate the new position of this point
 			locatePosition(circles, &p, &nPrevious);
+			//insert new values into map, old ones are automatically handled
 			macSamples[macAddress] = std::pair<Point, int>(p,nPrevious);
 		}
 		catch(int e)
-		{
+		{ 
+			//no point samples generated for this WAP
 			if(e == NO_POINT_SAMPLES_GENERATED)
 				return false;
+			//some other error, exit with error
 			else
-				exit(1);
+				exit(e);
 		}
 	}
 	return true;
@@ -159,8 +167,10 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 				try
 				{
 					Point p = trilaterate(v[i],v[j],v[k]);
+					//add points to sum
 					xSum += (double)p.getX();
 					ySum += (double)p.getY();
+					//increase number of points
 					nPoints++;
 				}
 				catch(int e)
@@ -182,20 +192,19 @@ void locatePosition(const std::vector<Circle>& v, Point* prev, int *nPrev)
 	if(nPoints == 0)
 		throw NO_POINT_SAMPLES_GENERATED;
 	
-	//add previous estimated location by the number of samples
+	//add previous estimated location times number of samples
 	xSum += prev->getX()*(*nPrev);
 	ySum += prev->getY()*(*nPrev);
 
-	printf("%f %f\n", xSum, ySum);
-
+	//divide by total number of samples used in calculation
 	xSum /= (*nPrev + nPoints);
 	ySum /= (*nPrev + nPoints);
 
-	printf("%f %f\n", xSum, ySum);
-
+	//set point co-ordinates
 	prev->setX((float)xSum);
 	prev->setY((float)ySum);
 
+	//set new number of samples used
 	*nPrev = nPoints+*nPrev;
 }
 
@@ -243,6 +252,7 @@ void pointToLatLon(const Point& p, float *lat, float *lon)
 
 	//returns the lat and lon through pass by reference
 	//easy way to do this, too difficult in other implementations
+	//note: permissible due to difference in latitude longitude being minute
 	*lat = lat_origin + x/X_MAX*lat_diff;
 	*lon = lon_origin + y/Y_MAX*lon_diff;
 }
@@ -266,25 +276,34 @@ void setupPermissibleArea(float lat1, float lon1, float lat2, float lon2)
 
 void readSamplesFromFile(const char* fileName)
 {
+	//open filestream
 	FILE* fileToRead = fopen(fileName,"r");
+	//make line buffer
 	char line[BUFSIZ];
+
 	float lat, lon;
 	char name[18]; //TODO: a hardcoded value, perhaps should be in a constants header?
 	int n;
+	//get line of csv file
 	while(fgets(line, sizeof line, fileToRead ))
 	{
+		//sscanf a file formatted as csv in following form:
+		//MAC Address,latitude,longitude,number of previous samples
 		sscanf(line,"%[^\t\n,],%f,%f,%d",name,&lat,&lon,&n);
-		if(ferror(fileToRead))
+		if(ferror(fileToRead)) //if there was an error reading this line
 		{
 			PRINT_ERR("Error whilst reading from file %s, expected a line of \"%%s,%%f,%%f,%%d\" but encountered error %d on stream\n", fileName,ferror(fileToRead));
-			clearerr(fileToRead);
-			continue;
+			//if(feof(fileToRead)) //unexpected eof
+			break;
+			/*else
+				clearerr(fileToRead); //continue
+			continue;*/
 		}
 		std::string cppName(name);
-		PRINT_ERR("%s\n",name);
-		PRINT_ERR("%s,%f,%f,%d\n",name,lat,lon,n);
+		//insert into previous sample mape
 		macSamples[cppName] = std::pair<Point,int>(latLonToPoint(lat,lon),n);
 	}
+	//close stream
 	fclose(fileToRead);
 }
 
@@ -300,6 +319,8 @@ void writeSamplesToFile(const char* fileName)
 		float lat, lon;
 		//convert to latitude and longitude
 		pointToLatLon((sample->second).first, &lat, &lon);
+		//write in csv format as follows:
+		//MAC Address,latitude,longitude,number Of Samples
 		fprintf(fileToWrite,"%s,%f,%f,%d\n",(sample->first).c_str(),lat,lon,(sample->second).second);
 	}
 
