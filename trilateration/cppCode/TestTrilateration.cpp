@@ -6,40 +6,33 @@ Point origin;
 
 void testGeneric(int i, Circle& c1, Circle& c2, Circle& c3)
 {
-	try {
-		Point p = trilaterate(c1, c2, c3);
-		PRINT_ERR("Test %d: (%f, %f)\n",i,p.getX(),p.getY());
-	}
-	catch(int e)
-	{
-		if(e == CIRCLES_DO_NOT_INTERSECT)
-		{
-			PRINT_ERR("Test %d: Failure due to no intersection\n", i);
-			//throw;
-		}
-		else
-		{
-			exit(1);
-		}
-	}
+	Point p = trilaterate(c1, c2, c3);
+	PRINT_ERR("Test %d: (%f, %f)\n",i,p.getX(),p.getY());
 }
 
 /*
 	If all three circles are identical
 */
-void testOne()
+bool testOne()
 {
 	int i = 1;
 	Circle c1(origin, 10);
 	Circle c2(c1);
 	Circle c3(c2);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return true;
+	}
+	return false;
 }
 
 /*
 	If all three circles are completely cut off from each other
 */
-void testTwo()
+bool testTwo()
 {
 	int i = 2;
 	Circle c1(origin, 3);
@@ -47,39 +40,60 @@ void testTwo()
 	Circle c2(b, 2);
 	Point c(-10, -10);
 	Circle c3(c, 2);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return true;
+	}
+	return false;
 }
 
 /*
 	If two circles are identical and one is non-intersecting
 */
-void testThree()
+bool testThree()
 {
 	int i = 3;
 	Circle c1(origin,3);
 	Circle c2(c1);
 	Point c(-10,10);
 	Circle c3(c, 4);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return true;
+	}
+	return false;
 }
 
 /*
 	If two circles are identical and third is intersecting
 */
-void testFour()
+bool testFour()
 {
 	int i = 4;
 	Circle c1(origin,3);
 	Circle c2(c1);
 	Point c(-3,4);
 	Circle c3(c, 6);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return true;
+	}
+	return false;
 }
 
 /*
 	If two circles are intersecting and third is not
 */
-void testFive()
+bool testFive()
 {
 	int i = 5;
 	Circle c1(origin,4);
@@ -87,13 +101,20 @@ void testFive()
 	Circle c2(b, 4);
 	Point c(-10,10);
 	Circle c3(c, 2);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return true;
+	}
+	return false;
 }
 
 /*
 	If two circles are intersecting and third intersects at one point
 */
-void testSix()
+bool testSix()
 {
 	int i = 6;
 	Circle c1(origin,5);
@@ -101,13 +122,20 @@ void testSix()
 	Circle c2(b, 5);
 	Point c(3,10);
 	Circle c3(c, 6);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return false;
+	}
+	return true;
 }
 
 /*
 	If all three circles intersect in a region.
 */
-void testSeven()
+bool testSeven()
 {
 	int i = 7;
 	Circle c1(origin, 5);
@@ -115,13 +143,20 @@ void testSeven()
 	Circle c2(b, 5);
 	Point c(3, -8);
 	Circle c3(c, 5);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return false;
+	}
+	return true;
 }
 
 /*
-	If all three circles intersect in a region.
+	If all three circles intersect in a region, not aligned to x axis anymore.
 */
-void testEight()
+bool testEight()
 {
 	int i = 8;
 	Point a(2, 3);
@@ -130,16 +165,26 @@ void testEight()
 	Circle c2(b, 5);
 	Point c(0, 2);
 	Circle c3(c, 6);
-	testGeneric(i, c1, c2, c3);
+	try {
+		testGeneric(i, c1, c2, c3);
+	}
+	catch(int e)
+	{
+		return false;
+	}
+	return true;
 }
 
-int main()
+/*
+	Run all tests
+*/
+void testTrilateration()
 {
-	/*testOne();
+	testOne();
 	testTwo();
 	testThree();
 	testFour();
-	testFive();*/
+	testFive();
 	testSix();
 	testSeven();
 	testEight();

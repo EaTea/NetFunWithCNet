@@ -2,9 +2,9 @@
 #include "serialise.h"
 using namespace std;
 
-int main(int argc, const char** args)
+void testSerialWrite(const char* filename)
 {
-	if(argc < 2)
+	if(filename == NULL)
 	{
 		PRINT_ERR("USAGE: pass name of file to use for serialisation test\n");
 		exit(1);
@@ -19,7 +19,6 @@ int main(int argc, const char** args)
 	v.push_back("00-B0-D0-86-BB-F7");
 	v.push_back("00:1b:63:84:45:e6");
 	v.push_back("00-14-22-01-23-45");
-	PRINT_ERR("%s\n",args[1]);
 	for(int s = 0; s < 3; s++)
 	{
 		std::vector<float> lat;
@@ -40,5 +39,5 @@ int main(int argc, const char** args)
 			PRINT_ERR("Did not generate enough points for %s\n",v[s].c_str());
 		}
 	}
-	writeSamplesToFile(args[1]);
+	writeSamplesToFile(filename);
 }

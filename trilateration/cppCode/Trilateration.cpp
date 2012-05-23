@@ -1,7 +1,6 @@
 #include "trilaterate.h"
 
-/*
-	Trilateration method, takes Circles a, b and c and solves the non-linear trilateration
+/* Trilateration method, takes Circles a, b and c and solves the non-linear trilateration
 	equation to determine the point where they intersect
 	Assumes that a's centre is the origin, b's centre lies on the x-axis
 	Equations from Wikipedia
@@ -37,7 +36,9 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 
 	if(areColinear(ca,cb,cc))
 	{
-		PRINT_ERR("Error: circle centres are colinear\n");
+#ifdef VERBOSE
+	PRINT_ERR("Error: circle centres are colinear\n");
+#endif
 		throw CIRCLE_CENTRES_ARE_COLINEAR;
 	}
 
@@ -64,7 +65,9 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	//insufficient number of intersections will result in throwing exception
 	if(!abIntersect || !acIntersect || !bcIntersect)
 	{
-		PRINT_ERR("Error: each pair of circles must intersect with at least two points\n");
+#ifdef VERBOSE
+	PRINT_ERR("Error: each pair of circles must intersect with at least two points\n");
+#endif
 		throw CIRCLES_DO_NOT_INTERSECT;
 	}
 	return __trilaterate(a, b, c);
@@ -97,7 +100,6 @@ Point __trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	//the intersection point relative to origin in transformed co-ordinate space
 	float x = (powf(ra,2)-powf(rb,2)+powf(d,2))/(2*d);
 	float y = ((powf(ra, 2)-powf(rc,2)+powf(i,2)+powf(j,2))/(2*j)) - x*(i)/(j);
-	printf("x:%f y:%f\n", x, y);
 
 	//transform x, y to original co-ordinate frame
 	Point xMagVector = xUnitVector*x, yMagVector = yUnitVector*y;

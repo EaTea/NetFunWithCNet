@@ -2,9 +2,9 @@
 #include "serialise.h"
 using namespace std;
 
-int main(int argc, const char** args)
+void testSerialRead(const char* filename)
 {
-	if(argc < 2)
+	if(filename == NULL)
 	{
 		PRINT_ERR("USAGE: pass name of file to use for serialisation test\n");
 		exit(1);
@@ -15,6 +15,5 @@ int main(int argc, const char** args)
 	lon1 = 100.5432;
 	lon2 = 100.55;
 	setupPermissibleArea(lat1,lon1,lat2,lon2);
-	readSamplesFromFile(args[1]);
-	PRINT_ERR("Here\n");
+	readSamplesFromFile(filename);
 }
