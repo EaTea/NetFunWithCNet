@@ -72,9 +72,19 @@ const float EARTH_RADIUS = 6372797; //in metres, approximation from Wikipedia
 //keeps all previously calculated WAP locations along with number of samples used to determine
 std::map<std::string, std::pair<Point, int> > macSamples;
 
+//the haversine formula
 float haversine(float f)
 {
 	return pow(sin(f/2),2);
+}
+
+//convert an rssi to distance
+//based upon empirical measurements to find the curve
+float RSSIToDistance(int32_t rssi)
+{
+	//at the moment, this is just a filler method and we did not manage to find a suitable
+	//conversion curve
+	return fabs((float)rssi);
 }
 
 bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector<int32_t>& rssis, float *lat, float *lon)
@@ -92,7 +102,7 @@ bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector
 		//get the point the WAP specified by this MAC supposedly resides at
 		Point p = macSamples[MACs[i]].first;
 		//note: number of previous samples is irrelevant
-		float radius = fabs(rssis[i]); //TODO: bad hack to convert rssi to distance in m
+		float radius = RSSIToDistance(rssis[i]);
 		Circle c(p, radius);
 		circles.push_back(c);
 	}
@@ -141,7 +151,7 @@ bool generateWAPPosition(const std::vector<float>& lats, const std::vector<float
 	for(size_t i = 0; i < nCircles; i++)
 	{
 		Point p = latLonToPoint(lats[i],lons[i]);
-		float rad = fabs(rssis[i]); //TODO: temporary conversion technique
+		float rad = RSSIToDistance(rssis[i]);
 		Circle c(p, rad);
 		circles.push_back(c);
 	}
