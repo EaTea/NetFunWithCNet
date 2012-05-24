@@ -14,7 +14,7 @@ COBJ_TEST = $(patsubst %, %.o, $(C_TEST_DEPS))
 #add the name of all the files geoserver requires without extensions to CDEP_GEO
 CPPDEP_GEO = $(CDEP)
 CDEP_GEO = $(GEOSERVER)
-CFILES_GEO = $(patsubst %, %.cpp, $(CDEP_GEO))
+CFILES_GEO = $(patsubst %, %.cpp, $(CPPDEP_GEO))
 CPPFILES_GEO = $(patsubst %, %.cpp, $(CPPDEP_GEO))
 COBJ_GEO = $(patsubst %, %.o, $(CDEP_GEO) $(CPPDEP_GEO))
 
@@ -26,7 +26,7 @@ STD = -std=c99
 geo: $(GEOSERVER)
 
 $(GEOSERVER): $(CPPFILES_GEO) $(CFILES_GEO) $(COBJ_GEO) $(HEADS)
-	g++ $(CFLAGS) $(STD99) -o $(GEOSERVER) $(COBJ_GEO)
+	g++ $(CFLAGS) -o $(GEOSERVER) $(COBJ_GEO)
 
 
 tests: ipod3230.h $(TEST_TARGET)
