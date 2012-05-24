@@ -325,12 +325,16 @@ void readSamplesFromFile(const char* fileName)
 #endif
 	//open filestream
 	FILE* fileToRead = fopen(fileName,"r");
+	//file does not exit
+	if(fileToRead == NULL)
+		return;
+
 	//make line buffer
 	char line[BUFSIZ];
-
 	float lat, lon;
 	char name[18]; //TODO: a hardcoded value, perhaps should be in a constants header?
 	int n;
+
 	//get line of csv file
 	while(fgets(line, sizeof line, fileToRead ))
 	{
