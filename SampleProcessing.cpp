@@ -46,7 +46,7 @@ void processSamples(int nSamples, IPOD_SAMPLE *samples)
 		//number of processed samples
 		int nProc = it->second.size();
 		//set a threshold that 10+ samples must be present before trilateration can occur
-		if(nProc >= 20)
+		if(nProc >= 10)
 		{
 			std::vector<float> lats;
 			std::vector<float> lons;
