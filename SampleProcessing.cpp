@@ -1,6 +1,8 @@
 #include "trilaterate.h"
 #include "locate.h"
 
+//structure for storing sample infos
+//note: much of the geoserver was coded indep
 struct sample_info
 {
 	float latitude;

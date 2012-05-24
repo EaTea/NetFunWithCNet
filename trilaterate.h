@@ -12,7 +12,7 @@
 #include "ipod3230.h"
 #include "locate.h"
 
-//following are exceptions
+//exception codes, assumed to be integers
 #define RADIUS_LESS_THAN_0 1
 #define CIRCLES_DO_NOT_INTERSECT 2
 #define NO_POINT_SAMPLES_GENERATED 4
@@ -23,8 +23,9 @@
 //#define VERBOSE
 
 /*
-	Implemented in Point.cpp
+	Implemented in Point.cpp (all functions)
 	Representation of a Point in the 2d plane
+	Essentially, assume this is a 3D Point in the plane z = 0
 */
 class Point {
 	private:
@@ -62,6 +63,7 @@ class Point {
 												const Point& //dot product value
 											) const;
 		//Scalar multiplication operator
+		//usage is Point * int
 		Point 	operator*	(
 												const float //dot product value
 											) const;
@@ -70,7 +72,7 @@ class Point {
 };
 
 /*
-	Implemented in Circle.cpp
+	Implemented in Circle.cpp (all functions)
 	Representation of a 2D circle, will essentially contract to a single Point if
 	radius is specified as 0
 */
@@ -90,10 +92,12 @@ class Circle {
 															Point&	//new center, must clone Point
 														);
 		//sets the radius to the given value, new radius must be >= 0
+		//if receives radius < 0, throws exception code RADIUS_LESS_THAN_0
 		void				setRadius		(
 															float		//new radius, must be >= 0
 														);
 		//constructor using Center and Radius
+		//if new radius is less than 0, sets radius of circle to 0
 								Circle			(
 															Point&,	//new center
 															float=0		//new radius, must be >= 0
@@ -122,7 +126,9 @@ class Circle {
 
 		//Implemented in Trilateration.c
 		//Calculate the intersection of three points
-		//throws exception if the triplet of circles do not each intersect
+		//throws exception if the triplet of circles do not each intersect or are colinear
+		//throws CIRCLES_DO_NOT_INTERSECT if circles do not have sufficient number of intersections
+		//throws CIRCLE_CENTRES_ARE_COLINEAR if circle centres are colinear
 		Point	trilaterate			(
 														const Circle&,
 														const Circle&,
@@ -184,6 +190,6 @@ bool generateWAPPosition	(
 bool	findCurrentPosition	(
 														const std::vector<std::string>&, //WAPs that can be heard, identified by MAC
 														const std::vector<int32_t>&, //rssis of WAPs
-														float *, //latitude
-														float * //longitude
+														float *, //latitude, if successful latitude will be stored here
+														float * //longitude, if successful longitude will be stored here
 													);

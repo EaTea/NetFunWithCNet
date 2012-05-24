@@ -3,6 +3,9 @@
 
 #include <utility>
 
+//Internal functions local to this file only
+/*-----------------------------------BEGIN------------------------------------*/
+
 /*
 	Given a vector of n Circles, perform nC3 unique trilateration calculations
 	Find the centroid of the trilateration points plus the previously calculated
@@ -55,6 +58,17 @@ void pointToLatLon								(
 */
 float haversine(float);
 
+/*
+	convert an rssi to distance
+	(should be) based upon empirical measurements to find the curve
+*/
+float RSSIToDistance(int32_t);
+
+/*------------------------------------END-------------------------------------*/
+
+//variables global for this file
+/*-----------------------------------BEGIN------------------------------------*/
+
 //the furthest possible distance in the x direction on the map (horizontally)
 float X_MAX;
 //the furthest possible distance in the y direction on the map (vertically)
@@ -70,21 +84,21 @@ float lon_diff;
 const float EARTH_RADIUS = 6372797; //in metres, approximation from Wikipedia
 
 //keeps all previously calculated WAP locations along with number of samples used to determine
+//the location of that sample
 std::map<std::string, std::pair<Point, int> > macSamples;
 
-//the haversine formula
+/*------------------------------------END-------------------------------------*/
+
 float haversine(float f)
 {
 	return pow(sin(f/2),2);
 }
 
-//convert an rssi to distance
-//based upon empirical measurements to find the curve
 float RSSIToDistance(int32_t rssi)
 {
 	//at the moment, this is just a filler method and we did not manage to find a suitable
 	//conversion curve
-	return fabs((float)rssi);
+	return expf(fabsf((float)rssi)/100.0*6.0);
 }
 
 bool findCurrentPosition(const std::vector<std::string>& MACs, const std::vector<int32_t>& rssis, float *lat, float *lon)

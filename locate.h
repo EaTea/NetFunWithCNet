@@ -55,4 +55,3 @@ void setupPermissibleArea	(
 														float, // latitude 2
 														float //longitude 2
 													);
-

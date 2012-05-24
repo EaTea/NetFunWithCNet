@@ -1,5 +1,8 @@
 #include "trilaterate.h"
 
+//Internal functions local to this file only
+/*-----------------------------------BEGIN------------------------------------*/
+
 /* Trilateration method, takes Circles a, b and c and solves the non-linear trilateration
 	equation to determine the point where they intersect
 	Assumes that a's centre is the origin, b's centre lies on the x-axis
@@ -8,24 +11,26 @@
 Point __trilaterate(const Circle& a, const Circle& b, const Circle& c);
 
 /*
-	Gets the new x-basis vector after transformation for the required transformed co-ordinate system
+	Gets the new x-basis unit vector after transformation for the required transformed co-ordinate system
 */
 Point getXUnit(const Point& ca, const Point& cb);
 
 /*
-	Finds the magnitude of the horizontal component of the difference between Points ca and cc
+	Finds the magnitude of the horizontal component of the difference between Points ca and cc in the transformed co-ordinate space
 */
 float signedMagnitudeX(const Point& ca, const Point& cc, const Point& xUnit);
 
 /*
-	Gets the new y-basis vector after transformation into the required co-ordinate system
+	Gets the new y-basis unit vector after transformation into the required co-ordinate system
 */
 Point getYUnit(const Point& ca, const Point& cc, const float xMag, const Point& xUnit);
 
 /*
-	Finds the magnitude of the vertical component of the difference between Points ca and cc
+	Finds the magnitude of the vertical component of the difference between Points ca and cc in the transformed co-ordinate space
 */
 float signedMagnitudeY(const Point& ca, const Point& cc, const Point& yUnit);
+
+/*------------------------------------END-------------------------------------*/
 
 Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 {
@@ -34,6 +39,7 @@ Point trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	cb = b.getCenter();
 	cc = c.getCenter();
 
+	//if colinear will cause nan errors in calculation
 	if(areColinear(ca,cb,cc))
 	{
 #ifdef VERBOSE
@@ -96,6 +102,9 @@ Point __trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	//"vertical" component (transformed space) of difference between circle centers
 	float j = signedMagnitudeY(ca, cc, yUnitVector);
 
+	//N.B.: ca + xUnitVector * i + yUnitVector * j = cc
+	//and ca + xUnitVector * d = cb
+
 	float d = getDistance(ca, cb);
 	//the intersection point relative to origin in transformed co-ordinate space
 	float x = (powf(ra,2)-powf(rb,2)+powf(d,2))/(2*d);
@@ -106,6 +115,12 @@ Point __trilaterate(const Circle& a, const Circle& b, const Circle& c)
 	Point p = ca + xMagVector + yMagVector;
 	return p;
 }
+
+//N.B.: the following functions, as specified in the beginning of the file, are
+//used to transform the initial co-ordinate space to a new co-ordinate space
+//by generating new basis unit vectors for the horizontal and vertical
+//directions in the transformed space and finding the location of the points
+//in the transformed space
 
 Point getXUnit(const Point& ca, const Point& cb)
 {
