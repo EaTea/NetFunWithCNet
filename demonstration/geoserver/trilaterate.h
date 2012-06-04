@@ -10,8 +10,9 @@
 #include <algorithm>
 
 #include "ipod3230.h"
+#include "locate.h"
 
-//following are exceptions
+//exception codes, assumed to be integers
 #define RADIUS_LESS_THAN_0 1
 #define CIRCLES_DO_NOT_INTERSECT 2
 #define NO_POINT_SAMPLES_GENERATED 4
@@ -19,11 +20,12 @@
 
 //if this line is uncommented it will specify that the program should output
 //verbosely with all its debug statements after recompilation
-//#define VERBOSE
+#define VERBOSE
 
 /*
-	Implemented in Point.cpp
+	Implemented in Point.cpp (all functions)
 	Representation of a Point in the 2d plane
+	Essentially, assume this is a 3D Point in the plane z = 0
 */
 class Point {
 	private:
@@ -61,6 +63,7 @@ class Point {
 												const Point& //dot product value
 											) const;
 		//Scalar multiplication operator
+		//usage is Point * int
 		Point 	operator*	(
 												const float //dot product value
 											) const;
@@ -69,7 +72,7 @@ class Point {
 };
 
 /*
-	Implemented in Circle.cpp
+	Implemented in Circle.cpp (all functions)
 	Representation of a 2D circle, will essentially contract to a single Point if
 	radius is specified as 0
 */
@@ -89,10 +92,12 @@ class Circle {
 															Point&	//new center, must clone Point
 														);
 		//sets the radius to the given value, new radius must be >= 0
+		//if receives radius < 0, throws exception code RADIUS_LESS_THAN_0
 		void				setRadius		(
 															float		//new radius, must be >= 0
 														);
 		//constructor using Center and Radius
+		//if new radius is less than 0, sets radius of circle to 0
 								Circle			(
 															Point&,	//new center
 															float=0		//new radius, must be >= 0
@@ -121,7 +126,9 @@ class Circle {
 
 		//Implemented in Trilateration.c
 		//Calculate the intersection of three points
-		//throws exception if the triplet of circles do not each intersect
+		//throws exception if the triplet of circles do not each intersect or are colinear
+		//throws CIRCLES_DO_NOT_INTERSECT if circles do not have sufficient number of intersections
+		//throws CIRCLE_CENTRES_ARE_COLINEAR if circle centres are colinear
 		Point	trilaterate			(
 														const Circle&,
 														const Circle&,
@@ -160,40 +167,6 @@ class Circle {
 
 /*
 	Implemented in Location.cpp
-	Reads all the values from a file specified by the const char* parameter
-	to the map in Location.cpp
-	Does not modify file contents
-	Assumes file has a csv structure and will stop reading file early if it
-	encounters file not in csv format
-*/
-void readSamplesFromFile	(
-														const char* //filename (path) of the file to read data from
-													);
-/*
-	Implemented in Location.cpp
-	Serialises all the values in Location.h's map to a file specified by the
-	const char* parameter
-	Overwrites current contents of the file
-	Writes in csv format
-*/
-void writeSamplesToFile		(
-														const char* //filename (path) of file to write data to
-													);
-
-/*
-	Implemented in Location.cpp
-	A function designed to be called at beginning of program, sets up trilateration
-	so that the differences in the bounding rectangle in metres can be calculated
-*/
-void setupPermissibleArea	(	
-														float, //latitude 1
-														float, //longitude 1
-														float, // latitude 2
-														float //longitude 2
-													);
-
-/*
-	Implemented in Location.cpp
 	Generates the WAP position for a given MAC address, given that it is passed a vector
 	of floats, a vector of floats and a vector of ints representing latitudes, longitudes
 	and rssis respectively.
@@ -217,30 +190,6 @@ bool generateWAPPosition	(
 bool	findCurrentPosition	(
 														const std::vector<std::string>&, //WAPs that can be heard, identified by MAC
 														const std::vector<int32_t>&, //rssis of WAPs
-														float *, //latitude
-														float * //longitude
+														float *, //latitude, if successful latitude will be stored here
+														float * //longitude, if successful longitude will be stored here
 													);
-
-/*
-	Implemented in SampleProcessing.cpp
-	Given n iPod samples, processes the samples and trilaterates the samples
-	accordingly, by finding which of the MACs these samples are related to and
-	recording them, then performing trilateration if there are at least 20 samples
-*/
-void processSamples	(
-											int, //number of samples
-											IPOD_SAMPLE * //pointer to samples
-										);
-
-/*
-	Implemented in SampleProcessing.cpp
-	Given all the APs broadcasting, processes the samples, trilaterates and returns
-	the most likely position that these MACs intersect at
-	returns 0 if successfully trilaterated, and 1 otherwise
-*/
-int processLocation	(
-											int, //number of APs
-											APINFO *, //pointer to APs
-											float*, //latitude
-											float* //longitude
-										);

@@ -1,0 +1,16 @@
+CITS3230 Project
+
+STUDENT NAME  	STUDENT NUMBER
+Joel Kalmanowicz   20424357
+Edwin Tay          20529864
+David Nathan       20356245
+
+To compile geoserver, call
+make geo
+Note that to get verbose output for trilateration in geoserver, uncomment "#define VERBOSE" in trilaterate.h
+
+ipod application compiles as per "normal" compilation instructions for iPod submissions
+ie. call:
+make setupusb
+make install #puts app onto ipod
+make getdebug #for debug output
